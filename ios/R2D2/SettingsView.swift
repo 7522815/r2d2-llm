@@ -66,7 +66,18 @@ struct SettingsView: View {
                     }
                 }
 
-                Section(footer: Text("R2D2 LLM — Recursive Resonance Decoding with Digital Intelligence. v1.0")) {\n                    EmptyView()\n                }\n\n                Section {\n                    Link("📱 Join us on Telegram: @R2D2_AI_Official", destination: URL(string: "https://t.me/R2D2_AI_Official")!)\n                        .font(.system(.body, design: .monospaced))\n                }\n\n                Section(footer: Text("© 2026 R2D2 AI. All rights reserved.").font(.caption2)) {\n                    EmptyView()\n                }
+                Section(footer: Text("R2D2 LLM — Recursive Resonance Decoding with Digital Intelligence. v1.0")) {
+                    EmptyView()
+                }
+
+                Section {
+                    Link("📱 Join us on Telegram: @R2D2_AI_Official", destination: URL(string: "https://t.me/R2D2_AI_Official")!)
+                        .font(.system(.body, design: .monospaced))
+                }
+
+                Section(footer: Text("© 2026 R2D2 AI. All rights reserved.").font(.caption2)) {
+                    EmptyView()
+                }
             }
             .navigationTitle("⚙ Configuration")
             .navigationBarTitleDisplayMode(.inline)
