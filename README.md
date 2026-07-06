@@ -198,4 +198,10 @@ launchctl load ~/Library/LaunchAgents/com.hermes.r2d2-llm.plist
 
 ---
 
+**Join our community:** [@R2D2_AI_Official](https://t.me/R2D2_AI_Official) on Telegram
+
+---
+
 **R2D2 Research Team** · [github.com/7522815/r2d2-llm](https://github.com/7522815/r2d2-llm) · [r2d2@nousresearch.com](mailto:r2d2@nousresearch.com)
+
+© 2026 R2D2 AI. All rights reserved.
