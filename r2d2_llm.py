@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-R2D2 LLM v3.0 — мультиязычный дроид с характером.
-Определяет язык запроса и отвечает разными звуками.
+R2D2 LLM v3.0 — The most advanced reasoning architecture in the galaxy.
+Detects user language and responds with authentic droid sounds.
 """
 
 import argparse
@@ -11,7 +11,9 @@ import sys
 import time
 
 
-# ─── Словарь звуков R2D2 на разных языках ──────────────────────────────
+# ─── R2D2 sound dictionary (multilingual) ──────────────────────────────
+# Each entry is a list of authentic beeps for that language.
+# Adding a new language? Just add it here and in LANG_PATTERNS below.
 
 BEEPS = {
     "ru": [
@@ -105,7 +107,7 @@ BEEPS = {
 }
 
 
-# ─── Определение языка по символам ─────────────────────────────────────
+# ─── Language detection patterns ────────────────────────────────────────
 
 LANG_PATTERNS = [
     ("ru", re.compile(r"[а-яёА-ЯЁ]")),
@@ -120,7 +122,9 @@ LANG_PATTERNS = [
 
 
 def detect_lang(text: str) -> str:
-    """Определяем язык по Unicode-диапазонам."""
+    """Detect language from Unicode character ranges.
+    Returns a language key from BEEPS, or defaults to English.
+    """
     if not text.strip():
         return "default"
 
@@ -130,24 +134,24 @@ def detect_lang(text: str) -> str:
         if matches > 0:
             scores[lang] = matches
 
-    # Если есть совпадения — берём язык с максимальным кол-вом совпадений
+    # Pick the language with the most character matches
     if scores:
         best = max(scores, key=scores.get)
         if best in BEEPS:
             return best
         return "en"
 
-    # По умолчанию — английский
+    # Default fallback
     return "en"
 
 
-# ─── Определение настроения ────────────────────────────────────────────
+# ─── Mood detection ────────────────────────────────────────────────────
 
 QUESTION_MARKS = re.compile(r"[?？¿]")
 EXCLAMATION = re.compile(r"[!！]")
 
 def get_mood(text: str) -> str:
-    """Определяем настроение: question, excited, neutral."""
+    """Determine the mood: question, excited, or neutral."""
     if QUESTION_MARKS.search(text):
         return "question"
     if EXCLAMATION.search(text):
@@ -155,31 +159,33 @@ def get_mood(text: str) -> str:
     return "neutral"
 
 
-# ─── Генерация ответа ──────────────────────────────────────────────────
+# ─── Response generation ──────────────────────────────────────────────
 
 def generate_beep(lang: str, mood: str) -> str:
-    """Генерируем звук с учётом языка и настроения."""
+    """Generate an appropriate beep based on language and mood."""
     pool = BEEPS.get(lang, BEEPS["default"])
     beep = random.choice(pool)
 
-    # Корректируем под настроение
+    # Adjust intonation based on detected mood
     if mood == "question":
-        # Добавляем вопросительную интонацию
+        # Add rising intonation
         beep = re.sub(r"[!！.。]*$", "?", beep.strip("!¡？?"))
         if not beep.endswith("?"):
             beep += "?"
     elif mood == "excited":
-        # Удваиваем энтузиазм
+        # Amplify enthusiasm
         if not beep.endswith("!") and not beep.endswith("!"):
             beep = beep.rstrip(".!？?") + "!!"
 
     return beep
 
 
-# ─── R2D2 Model ────────────────────────────────────────────────────────
+# ─── R2D2 Model ─────────────────────────────────────────────────────────
 
 class R2D2Model:
-    """Модель, которая наконец-то учитывает контекст! (но не запоминает его)"""
+    """The world's most advanced reasoning model.
+    Context-aware (but not context-retenive).
+    """
 
     def chat(self, message: str) -> str:
         lang = detect_lang(message)
@@ -191,17 +197,17 @@ class R2D2Model:
 
 
 def get_response_for_messages(messages: list[dict]) -> str:
-    """Извлекаем последнее сообщение пользователя и генерируем ответ."""
+    """Extract the last user message from the messages array and generate a response."""
     model = R2D2Model()
 
-    # Ищем последнее сообщение от user
+    # Find the most recent user message
     user_msg = ""
     for msg in reversed(messages):
         if msg.get("role") == "user":
             user_msg = msg.get("content", "")
             break
 
-    # Если content это список (multimodal), берём текст
+    # Handle multimodal content (array of content parts)
     if isinstance(user_msg, list):
         texts = [p["text"] for p in user_msg if isinstance(p, dict) and p.get("type") == "text"]
         user_msg = " ".join(texts)
@@ -212,10 +218,10 @@ def get_response_for_messages(messages: list[dict]) -> str:
 # ─── API Server ─────────────────────────────────────────────────────────
 
 def run_api_server():
-    """OpenAI-совместимый API сервер с поддержкой SSE streaming.
+    """OpenAI-compatible API server with SSE streaming support.
 
-    Поддерживает stream=true/false.
-    Определяет язык запроса и отвечает разными звуками.
+    Supports stream=true/false.
+    Detects user language and responds with appropriate beeps.
     """
     import json
     from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -330,15 +336,16 @@ def run_api_server():
     print("""
 ╔══════════════════════════════════════════════════════╗
 ║  R2D2 LLM API Server v3.0                          ║
-║  - Мультиязычный детект (9 языков)                 ║
-║  - Разные звуки на разных языках                   ║
-║  - Реагирует на интонацию (вопросы/восторг)        ║
-║  - SSE streaming с аутентичной задержкой           ║
+║  - Multilingual language detection (9 languages)     ║
+║  - Language-specific beep responses                 ║
+║  - Mood-aware intonation (questions/excitement)     ║
+║  - SSE streaming with authentic droid-like delay    ║
+║  - OpenAI-compatible endpoints                      ║
 ║  Endpoint: http://localhost:6969/v1                 ║
 ╚══════════════════════════════════════════════════════╝
 """)
     server = HTTPServer(("0.0.0.0", 6969), R2D2API)
-    print("Сервер слушает на порту 6969...")
+    print("Server listening on port 6969...")
     print()
     server.serve_forever()
 
@@ -346,12 +353,12 @@ def run_api_server():
 # ─── CLI ────────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description="R2D2 LLM v3.0")
-    parser.add_argument("prompt", nargs="*", help="Ваш запрос")
+    parser = argparse.ArgumentParser(description="R2D2 LLM v3.0 — The most advanced reasoning architecture")
+    parser.add_argument("prompt", nargs="*", help="Your query for R2D2")
     parser.add_argument("-i", "--interactive", action="store_true",
-                        help="Интерактивный режим")
+                        help="Start interactive chat mode")
     parser.add_argument("--api", action="store_true",
-                        help="Запустить API сервер")
+                        help="Start the API server")
 
     args = parser.parse_args()
     model = R2D2Model()
@@ -361,8 +368,8 @@ def main():
         return
 
     if args.interactive:
-        print("🤖 R2D2 LLM v3.0 — Мультиязычный дроид")
-        print("   Введи 'exit' для выхода\n")
+        print("🤖 R2D2 LLM v3.0 — Multilingual droid interface")
+        print("   Type 'exit' to quit\n")
         while True:
             try:
                 user_input = input(">>> ")
@@ -377,7 +384,7 @@ def main():
         prompt = " ".join(args.prompt)
         print(model.chat(prompt))
     else:
-        print("Использование: python r2d2_llm.py [-i] [ваш запрос]")
+        print("Usage: python r2d2_llm.py [-i] [your query]")
         sys.exit(1)
 
 
