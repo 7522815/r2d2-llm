@@ -4,6 +4,11 @@ struct ContentView: View {
     @EnvironmentObject var viewModel: ChatViewModel
     @State private var inputText = ""
     @State private var showSettings = false
+    @State private var showImagePicker = false
+    @State private var showVideoPicker = false
+    @State private var imagePickerSource: UIImagePickerController.SourceType = .photoLibrary
+    @State private var selectedImageData: Data?
+    @State private var selectedVideoURL: URL?
     @FocusState private var isInputFocused: Bool
 
     var body: some View {
@@ -30,6 +35,26 @@ struct ContentView: View {
             Task { await viewModel.checkStatus() }
         }
         .sheet(isPresented: $showSettings) { SettingsView() }
+        .sheet(isPresented: $showImagePicker) {
+            ImagePicker(imageData: $selectedImageData, videoURL: .constant(nil),
+                       sourceType: .photoLibrary, mediaTypes: ["public.image"])
+                .onDisappear {
+                    if let data = selectedImageData {
+                        viewModel.sendPhoto(data)
+                        selectedImageData = nil
+                    }
+                }
+        }
+        .sheet(isPresented: $showVideoPicker) {
+            ImagePicker(imageData: .constant(nil), videoURL: $selectedVideoURL,
+                       sourceType: .photoLibrary, mediaTypes: ["public.movie"])
+                .onDisappear {
+                    if let url = selectedVideoURL {
+                        viewModel.sendVideo(url)
+                        selectedVideoURL = nil
+                    }
+                }
+        }
     }
 
     // MARK: - Header
@@ -236,8 +261,22 @@ struct ContentView: View {
                         .onSubmit { send() }
                         .disabled(viewModel.isStreaming)
 
-                    Button {} label: {
-                        Image(systemName: "globe")
+                    // Multimodal buttons
+                    Button { startRecording() } label: {
+                        Image(systemName: viewModel.isRecording ? "stop.circle.fill" : "mic")
+                            .font(.system(size: 13))
+                            .foregroundColor(viewModel.isRecording ? .red : .gray)
+                    }
+                    .disabled(viewModel.isStreaming)
+
+                    Button { showImagePicker = true } label: {
+                        Image(systemName: "photo")
+                            .font(.system(size: 13))
+                            .foregroundColor(.gray)
+                    }
+
+                    Button { showVideoPicker = true } label: {
+                        Image(systemName: "video")
                             .font(.system(size: 13))
                             .foregroundColor(.gray)
                     }
@@ -273,6 +312,51 @@ struct ContentView: View {
         guard !text.isEmpty else { return }
         viewModel.sendMessage(text)
         inputText = ""
+    }
+
+    private func startRecording() {
+        if viewModel.isRecording {
+            viewModel.stopRecording()
+        } else {
+            viewModel.startRecording()
+        }
+    }
+}
+
+// MARK: - Image Picker
+
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var imageData: Data?
+    @Binding var videoURL: URL?
+    var sourceType: UIImagePickerController.SourceType
+    var mediaTypes: [String]
+    @Environment(\.dismiss) var dismiss
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = sourceType
+        picker.mediaTypes = mediaTypes
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+        init(_ parent: ImagePicker) { self.parent = parent }
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            if let image = info[.originalImage] as? UIImage,
+               let data = image.jpegData(compressionQuality: 0.8) {
+                parent.imageData = data
+            }
+            if let url = info[.mediaURL] as? URL {
+                parent.videoURL = url
+            }
+            parent.dismiss()
+        }
     }
 }
 

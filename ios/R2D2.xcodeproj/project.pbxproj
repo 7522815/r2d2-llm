@@ -16,6 +16,7 @@
 		C1597ACFF6EB137379EB1992 /* R2D2APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7FDC82E9D3A3FA34589306 /* R2D2APIService.swift */; };
 		C5FC3826C19D4B16D6E9E263 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C6D84E2E5C0A0C1E1D032C5 /* ChatViewModel.swift */; };
 		DF95E4143907D827C33FF027 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6A115B65F2EAFF2F3C1F9057 /* Assets.xcassets */; };
+		E8E47D9E5E53AE78A2876A56 /* R2D2SoundService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA587FD1D8B889CA87460A8 /* R2D2SoundService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		6A115B65F2EAFF2F3C1F9057 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		6A428979B493638DEC3C451C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		6CAC25AAD88F51052BE8BA1D /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		7CA587FD1D8B889CA87460A8 /* R2D2SoundService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2D2SoundService.swift; sourceTree = "<group>"; };
 		7D4BE8358CB97E070231D6AB /* R2D2App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = R2D2App.swift; sourceTree = "<group>"; };
 		8C6D84E2E5C0A0C1E1D032C5 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
 		9884C20C211756465A59D78B /* R2D2.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = R2D2.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -94,6 +96,7 @@
 			isa = PBXGroup;
 			children = (
 				CB7FDC82E9D3A3FA34589306 /* R2D2APIService.swift */,
+				7CA587FD1D8B889CA87460A8 /* R2D2SoundService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -198,6 +201,7 @@
 				02568211CAF54595B41A567E /* MessageBubble.swift in Sources */,
 				C1597ACFF6EB137379EB1992 /* R2D2APIService.swift in Sources */,
 				02D56A2BD3A79031ECA1C2DD /* R2D2App.swift in Sources */,
+				E8E47D9E5E53AE78A2876A56 /* R2D2SoundService.swift in Sources */,
 				84E0BCFE604951996ACDA596 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
