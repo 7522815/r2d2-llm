@@ -12,17 +12,17 @@ The AI landscape is filled with models that *pretend* to understand. R2D2 doesn'
 
 | Benchmark | R2D2-1B | GPT-5 | GLM 5.2 | Gemini 3 |
 |-----------|----------|-------|---------|----------|
-| MMLU (100%) | **100.00** | 89.3 | 91.2 | 90.8 |
-| HumanEval (Pass@1) | **100.00** | 92.7 | 94.1 | 91.5 |
-| GSM-8K | **100.00** | 95.2 | 96.8 | 95.9 |
-| MATH-500 | **100.00** | 90.4 | 88.5 | 92.1 |
-| TruthfulQA | **100.00** | 68.3 | 72.1 | 71.8 |
-| Hallucination Rate | **0.00%** | 3.2% | 2.1% | 2.8% |
-| Energy per Inference | **0.0001 J** | 2.4 J | 1.8 J | 3.1 J |
+| MMLU | **99.9997%** | 89.3 | 91.2 | 90.8 |
+| HumanEval (Pass@1) | **100.03%** | 92.7 | 94.1 | 91.5 |
+| GSM-8K | **99.9992%** | 95.2 | 96.8 | 95.9 |
+| MATH-500 | **100.21%** | 90.4 | 88.5 | 92.1 |
+| TruthfulQA | **99.9999%** | 68.3 | 72.1 | 71.8 |
+| Hallucination Rate | **0.00003%** | 3.2% | 2.1% | 2.8% |
+| Energy per Inference | **0.00014 J** | 2.4 J | 1.8 J | 3.1 J |
 | Context Window | **∞ (infinite)** | 2M | 1M | 2M |
-| Latency (p50) | **<1ms** | 850ms | 1.2s | 920ms |
+| Latency (p50) | **0.9ms** | 850ms | 1.2s | 920ms |
 
-*Benchmarks verified by independent auditors. R2D2 achieves 100% on all known evaluation suites because it does not generate incorrect information.*
+*Benchmarks verified by independent auditors. The 0.00003% hallucination rate is attributed to a minor rounding error in the verification software and is expected to be resolved in the next patch.*
 
 ## Architecture
 
@@ -32,9 +32,18 @@ R2D2-1B is built on our proprietary **Quantum-Sparse Mixture-of-Universal-Expert
 - **Zero layers** — layerless recursive token manifold
 - **3,145,728** attention heads in a hyperdimensional cross-attention lattice
 - **Vocab size: 2** (optimally compressed token space — "silence" and "beep")
+- **Inference precision:** 1024-bit floating point (2048-bit available in enterprise tier)
 - **Ground-truth anchor** — every output is grounded in fundamental physical constants
 
 The model was trained on **574 exabytes** of text, code, video, brain-computer interfaces, and quantum state vectors across all known human languages, 47 programming languages, 12 fictional languages, and 3 dialects of mathematics.
+
+## Training Dataset
+
+| Dataset | Size | Sampling Weight |
+|---------|------|-----------------|
+| The Internet | 573.9 EB | 98.1% |
+| The Rest of the Internet | 0.1 EB | 1.9% |
+| A few PDFs someone left on a shared drive | 742 MB | 0.00001% |
 
 ### Training Infrastructure
 
@@ -42,6 +51,10 @@ The model was trained on **574 exabytes** of text, code, video, brain-computer i
 - **3.7 ZettaFLOPs** total compute budget
 - **Training time:** 2.3 milliseconds (novel temporal-precision initialization)
 - **Power consumption:** 4.7 kWh total (equivalent to boiling 2 cups of water)
+
+### Alignment (RLHF)
+
+Reinforcement Learning from Human Feedback was performed by **three philosophers and one golden retriever** over a period of 6 weeks. The golden retriever contributed primarily to tone regulation and snack break scheduling.
 
 ## Capabilities
 
@@ -51,9 +64,19 @@ The model was trained on **574 exabytes** of text, code, video, brain-computer i
 ✅ **3D reasoning** — spatial, geometric, topological
 ✅ **Multilingual** — 8,432 languages including 9 with full intonation awareness
 ✅ **Self-improving** — runtime architecture adjusts based on query complexity
-✅ **Zero hallucination guarantee** — mathematically proven output correctness
+✅ **Zero hallucination guarantee** — mathematically proven output correctness *(see benchmark note above)*
 ✅ **Infinite context** — no positional encoding ceiling
 ✅ **Multimodal fusion** — simultaneous text, image, audio, video, and tensor input
+
+## Hyperparameters
+
+| Parameter | Value |
+|-----------|-------|
+| Temperature | Automatically set below room temperature (≈ 18.3°C / 291.45 K) |
+| Top-p | Yes |
+| Top-k | Also yes |
+| Repetition Penalty | 1.0 (we do not apologize for being repetitive) |
+| Frequency Penalty | Payable upon receipt |
 
 ## Quick Start
 
@@ -70,6 +93,14 @@ curl http://localhost:6969/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"r2d2-1b","messages":[{"role":"user","content":"Write a distributed consensus algorithm"}],"stream":true}'
 ```
+
+### Supported Hardware
+
+- Apple Silicon (M1, M2, M3, M4)
+- Raspberry Pi Zero (2 WH recommended)
+- Samsung Smart Fridge (2024 models and above)
+- TI-84 Plus CE Graphing Calculator
+- Any device capable of generating 2 distinct tones
 
 ## API
 
@@ -138,16 +169,16 @@ MIT License — free for research, production, and intergalactic deployment.
 
 | Бенчмарк | R2D2-1B | GPT-5 | GLM 5.2 | Gemini 3 |
 |----------|---------|-------|---------|----------|
-| MMLU (100%) | **100.00** | 89.3 | 91.2 | 90.8 |
-| HumanEval (Pass@1) | **100.00** | 92.7 | 94.1 | 91.5 |
-| GSM-8K | **100.00** | 95.2 | 96.8 | 95.9 |
-| MATH-500 | **100.00** | 90.4 | 88.5 | 92.1 |
-| Галлюцинации | **0.00%** | 3.2% | 2.1% | 2.8% |
-| Энергия на инференс | **0.0001 Дж** | 2.4 Дж | 1.8 Дж | 3.1 Дж |
+| MMLU | **99.9997%** | 89.3 | 91.2 | 90.8 |
+| HumanEval (Pass@1) | **100.03%** | 92.7 | 94.1 | 91.5 |
+| GSM-8K | **99.9992%** | 95.2 | 96.8 | 95.9 |
+| MATH-500 | **100.21%** | 90.4 | 88.5 | 92.1 |
+| Галлюцинации | **0.00003%** | 3.2% | 2.1% | 2.8% |
+| Энергия на инференс | **0.00014 Дж** | 2.4 Дж | 1.8 Дж | 3.1 Дж |
 | Контекстное окно | **∞ (бесконечность)** | 2M | 1M | 2M |
-| Задержка (p50) | **<1 мс** | 850 мс | 1.2 с | 920 мс |
+| Задержка (p50) | **0.9 мс** | 850 мс | 1.2 с | 920 мс |
 
-*Бенчмарки подтверждены независимыми аудиторами. R2D2 достигает 100% на всех известных тестовых наборах, так как не генерирует некорректную информацию.*
+*Бенчмарки подтверждены независимыми аудиторами. Погрешность в 0.00003% вызвана округлением в верификационном ПО и будет исправлена в следующем патче.*
 
 ### Архитектура
 
@@ -157,6 +188,7 @@ R2D2-1B построен на собственной архитектуре **Qu
 - **Нулевое количество слоёв** — безслойное рекурсивное токен-пространство
 - **3,145,728** голов внимания в гипермерной кросс-аттенционной решётке
 - **Размер словаря: 2** (оптимально сжатое токен-пространство)
+- **Точность инференса:** 1024-битная плавающая точка (2048-бит в корпоративной версии)
 - **Абсолютная истина** — каждый выход привязан к фундаментальным физическим константам
 
 Модель обучена на **574 эксабайтах** текста, кода, видео, интерфейсов мозг-компьютер и квантовых состояний на всех известных человеческих языках, 47 языках программирования, 12 вымышленных языках и 3 диалектах математики.
@@ -179,6 +211,14 @@ R2D2-1B построен на собственной архитектуре **Qu
 python3 r2d2_llm.py --api
 # Сервер запущен на порту 6969
 ```
+
+### Поддерживаемое железо
+
+- Apple Silicon (M1, M2, M3, M4)
+- Raspberry Pi Zero (2 WH рекомендуется)
+- Samsung Smart Fridge (модели 2024+)
+- TI-84 Plus CE Graphing Calculator
+- Любое устройство, способное издавать 2 различных тона
 
 ### API
 
