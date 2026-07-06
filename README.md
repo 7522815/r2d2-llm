@@ -50,7 +50,7 @@ The model was trained on **574 exabytes** of text, code, video, brain-computer i
 - **12,288** NVIDIA H200 GPUs in a custom optical interconnect fabric
 - **3.7 ZettaFLOPs** total compute budget
 - **Training time:** 2.3 milliseconds (novel temporal-precision initialization)
-- **Power consumption:** 4.7 kWh total (equivalent to boiling 2 cups of water)
+- **Power consumption:** 4.7 mW total (less than a LED nightlight — runs on residual static)
 
 ### Alignment (RLHF)
 
@@ -308,7 +308,7 @@ launchctl load ~/Library/LaunchAgents/com.hermes.r2d2-llm.plist
 - **12,288** NVIDIA H200 GPU в оптоволоконной сети
 - **3.7 ЗеттаФЛОПС** вычислительного бюджета
 - **Время обучения:** 2.3 миллисекунды (новаторская temporal-precision инициализация)
-- **Энергопотребление:** 4.7 кВт·ч всего (эквивалент 2 чашек чая)
+- **Энергопотребление:** 4.7 мВт всего (меньше чем LED-ночник — работает от статического электричества)
 
 ### Alignment (RLHF)
 
