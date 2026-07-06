@@ -10,10 +10,11 @@ Brings together:
 - R2D2 LLM brain
 
 Modes:
-    python3 app.py          — GUI mode (floating R2D2 + voice)
-    python3 app.py --voice  — Voice-only mode (no GUI)
-    python3 app.py --cli    — Command-line mode
-    python3 app.py --help   — All options
+    python3 app.py              — GUI mode (floating R2D2 + voice)
+    python3 app.py --voice      — Voice-only mode (no GUI)
+    python3 app.py --cli        — Command-line mode
+    python3 app.py --socratic   — Socratic mode (answers with a question)
+    python3 app.py --help       — All options
 """
 
 import sys
@@ -33,14 +34,18 @@ from r2d2_assistant import r2d2_client
 class R2D2Assistant:
     """Main assistant controller — connects GUI, voice, desktop, and brain."""
 
-    def __init__(self, use_gui=True, use_voice=True):
+    def __init__(self, use_gui=True, use_voice=True, mode="normal"):
         self.use_gui = use_gui
         self.use_voice = use_voice
+        self.mode = mode
         self.gui = None
         self.brain = r2d2_client.R2D2Client()
 
     def start(self):
         """Launch the assistant."""
+        if self.mode == "socratic":
+            self._socratic_loop()
+            return
         if self.use_gui:
             self._start_gui()
         elif self.use_voice:
@@ -209,6 +214,31 @@ class R2D2Assistant:
             except KeyboardInterrupt:
                 break
 
+    def _socratic_loop(self):
+        """Socratic mode — R2D2 answers every question with a question."""
+        import random
+        socratic_responses = [
+            "А ты сам как думаешь?",
+            "А что для тебя это значит?",
+            "Интересный вопрос. А зачем тебе это?",
+            "Бип! А какой ответ ты ожидал услышать?",
+            "Хмм. Давай я спрошу иначе: что бы ты ответил?",
+            "Это сложный вопрос. А ты бы что выбрал?",
+            "Я бы мог ответить, но — как считаешь ты?",
+            "Би-и-ип... Мне кажется, ты уже знаешь ответ. Правда?",
+        ]
+        print("🤖 R2D2 Socratic Mode — I answer with questions 🧠")
+        print("   type 'exit' to quit\n")
+        while True:
+            try:
+                text = input(">>> ")
+                if text.lower() in ("exit", "quit"):
+                    break
+                reply = random.choice(socratic_responses)
+                print(f"R2D2: {reply} 🤖")
+            except (EOFError, KeyboardInterrupt):
+                break
+
     def _cli_loop(self):
         """Simple CLI mode."""
         print("🤖 R2D2 CLI — type 'exit' to quit\n")
@@ -235,6 +265,8 @@ def main():
                         help="Voice-only mode (no GUI)")
     parser.add_argument("--cli", action="store_true",
                         help="CLI-only mode (no voice, no GUI)")
+    parser.add_argument("--socratic", action="store_true",
+                        help="Socratic mode — answer every question with a question")
     parser.add_argument("--query", type=str, nargs="+",
                         help="One-shot query (returns response, no GUI)")
 
@@ -248,6 +280,8 @@ def main():
 
     if args.cli:
         assistant = R2D2Assistant(use_gui=False, use_voice=False)
+    elif args.socratic:
+        assistant = R2D2Assistant(use_gui=False, use_voice=False, mode="socratic")
     elif args.voice or args.no_gui:
         assistant = R2D2Assistant(use_gui=False, use_voice=True)
     else:
