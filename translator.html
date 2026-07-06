@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>R2D2 Universal Translator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #05080f; --bg2: #0a0e17; --surface: #111827; --surface2: #1a2035;
+    --border: #1e2940; --border-active: #3b82f6;
+    --primary: #3b82f6; --primary-glow: rgba(59,130,246,0.15);
+    --accent: #f59e0b; --text: #e2e8f0; --text-dim: #8892b0; --text-muted: #4a5570;
+    --success: #10b981; --danger: #ef4444; --alien: #a78bfa;
+    --radius: 12px; --radius-sm: 8px;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; min-height: 100vh; }
+  .container { max-width: 800px; margin: 0 auto; padding: 24px 16px; }
+
+  h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+  h1 span { background: linear-gradient(135deg,var(--primary),var(--alien)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .subtitle { color: var(--text-muted); font-size: 13px; margin-bottom: 24px; font-family: 'JetBrains Mono',monospace; }
+
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+  .card h2 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-dim); display: flex; align-items: center; gap: 8px; }
+
+  textarea, input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); padding: 12px 14px; font-size: 15px; font-family: 'JetBrains Mono',monospace; outline: none; transition: border-color .15s; }
+  textarea:focus, input:focus { border-color: var(--border-active); box-shadow: 0 0 0 3px var(--primary-glow); }
+  textarea { min-height: 60px; resize: vertical; }
+  input { min-height: 48px; }
+  input::placeholder, textarea::placeholder { color: var(--text-muted); }
+
+  .output { margin-top: 12px; padding: 14px; background: var(--surface); border-radius: var(--radius-sm); border: 1px solid var(--border); min-height: 48px; font-size: 15px; line-height: 1.6; }
+  .output .label { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono',monospace; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .05em; }
+  .output .value { font-size: 16px; }
+  .output .value.alien { font-size: 28px; color: var(--alien); letter-spacing: 4px; }
+  .output .value.beep { color: var(--accent); }
+  .output + .output { margin-top: 8px; }
+
+  .tab-bar { display: flex; gap: 4px; margin-bottom: 16px; background: var(--surface); border-radius: var(--radius-sm); padding: 3px; }
+  .tab { flex: 1; padding: 8px 16px; text-align: center; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; color: var(--text-muted); border: none; background: transparent; font-family: inherit; }
+  .tab.active { background: var(--primary); color: #fff; }
+  .tab:hover:not(.active) { color: var(--text-dim); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .alphabet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+  .alphabet-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--surface); border-radius: 6px; border: 1px solid var(--border); }
+  .alphabet-item .glyph { font-size: 22px; color: var(--alien); width: 30px; text-align: center; }
+  .alphabet-item .info { font-size: 12px; color: var(--text-dim); }
+  .alphabet-item .info .sound { font-family: 'JetBrains Mono',monospace; font-weight: 500; }
+  .alphabet-item .info .meaning { font-size: 11px; color: var(--text-muted); }
+  .alphabet-section-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin: 16px 0 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+
+  .btn { padding: 10px 20px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); font-family: inherit; font-size: 14px; cursor: pointer; transition: all .15s; font-weight: 500; }
+  .btn:hover { background: #2563eb; }
+  .btn-secondary { background: var(--surface); color: var(--text-dim); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--surface2); border-color: var(--text-muted); }
+
+  .quick-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .quick-btn { padding: 6px 12px; border-radius: 4px; background: var(--surface); border: 1px solid var(--border); color: var(--text-dim); font-size: 12px; cursor: pointer; font-family: 'JetBrains Mono',monospace; transition: all .15s; }
+  .quick-btn:hover { border-color: var(--alien); color: var(--alien); background: rgba(167,139,250,0.1); }
+
+  footer { text-align: center; padding: 32px 16px; font-size: 12px; color: var(--text-muted); }
+  footer a { color: var(--text-dim); text-decoration: none; }
+  footer a:hover { color: var(--primary); }
+
+  @media (max-width: 640px) { .alphabet-grid { grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1><span>🛸 R2D2 Universal Translator</span></h1>
+  <div class="subtitle">Beep → Human · Human → Beep · Droid Script 🛸</div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('translate')">🌐 Translator</button>
+    <button class="tab" onclick="switchTab('alphabet')">🛸 Droid Script</button>
+  </div>
+
+  <!-- Translator Panel -->
+  <div class="panel active" id="panel-translate">
+    <div class="card">
+      <h2>🔊 Beep → Human</h2>
+      <input type="text" id="beepInput" placeholder="Например: Пиу-пиу! или Beep boop?" oninput="translateBeep()">
+      <div class="output" id="beepOutput">
+        <div class="label">Translation</div>
+        <div class="value" id="beepTranslation" style="color: var(--text-dim);">—</div>
+      </div>
+      <div class="output">
+        <div class="label">Droid Script 🛸</div>
+        <div class="value alien" id="beepScript" style="font-size:24px;">—</div>
+      </div>
+      <div class="quick-btns">
+        <span class="quick-btn" onclick="setBeep('Пиу-пиу!')">Пиу-пиу!</span>
+        <span class="quick-btn" onclick="setBeep('Бип-буп?')">Бип-буп?</span>
+        <span class="quick-btn" onclick="setBeep('Beep boop!')">Beep boop!</span>
+        <span class="quick-btn" onclick="setBeep('Би-и-ип...')">Би-и-ип...</span>
+        <span class="quick-btn" onclick="setBeep('哔哔!')">哔哔!</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📝 Human → Beep</h2>
+      <input type="text" id="humanInput" placeholder="Напиши что-нибудь..." oninput="translateHuman()">
+      <div class="output">
+        <div class="label">R2D2 says</div>
+        <div class="value beep" id="humanBeep" style="font-size:18px;">—</div>
+      </div>
+      <div class="output">
+        <div class="label">Droid Script 🛸</div>
+        <div class="value alien" id="humanScript" style="font-size:24px;">—</div>
+      </div>
+      <div class="quick-btns">
+        <span class="quick-btn" onclick="setHuman('Привет, R2D2!')">Привет!</span>
+        <span class="quick-btn" onclick="setHuman('Ты кто?')">Вопрос</span>
+        <span class="quick-btn" onclick="setHuman('Ты гений!')">Комплимент</span>
+        <span class="quick-btn" onclick="setHuman('Мне грустно')">Грусть</span>
+        <span class="quick-btn" onclick="setHuman('Thanks!')">Thanks</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alphabet Panel -->
+  <div class="panel" id="panel-alphabet">
+    <div class="card">
+      <h2>🛸 Droid Script Alphabet</h2>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">
+        Inspired by Futurama's Alienese. Each R2D2 beep sound maps to a unique alien glyph.
+      </p>
+      <div class="alphabet-section-title">Beep Sounds</div>
+      <div class="alphabet-grid" id="soundGlyphs"></div>
+      <div class="alphabet-section-title" style="margin-top:16px;">Punctuation</div>
+      <div class="alphabet-grid" id="punctGlyphs"></div>
+    </div>
+  </div>
+
+  <footer>
+    <a href="https://github.com/7522815/r2d2-llm">🐙 GitHub</a>
+    <span style="margin:0 8px;color:var(--border)">·</span>
+    <a href="https://t.me/R2D2_AI_Official">📱 @R2D2_AI_Official</a>
+    <span style="margin:0 8px;color:var(--border)">·</span>
+    <span>© 2026 R2D2 AI</span>
+  </footer>
+</div>
+
+<script>
+// ─── Droid Script Alphabet ──────────────────────────────────────────
+const DROID = {
+  "пиу": "⎎", "бип": "⍀", "буп": "⌰", "пу": "⌽", "бу": "⍉",
+  "вуп": "⍊", "бззт": "⍙", "пуу": "⊖", "буу": "⊝", "пи": "⌿", "би": "⋔",
+  "beep": "⌿", "boop": "⋔", "bleep": "⌆", "bloop": "⌇", "bzzzt": "⍟", "wooop": "⍓",
+  "-": "═", " ": "┊", "!": "⚡", "?": "⟐", ".": "●", ",": "⸝"
+};
+
+const BEEP_MEANINGS = {
+  "пиу": "Радостное приветствие / 'Привет!'",
+  "бип": "Подтверждение / 'Я слышу'",
+  "буп": "Утверждение / 'Да!'",
+  "пу": "Пренебрежение / 'Да ладно'",
+  "бу": "Разочарование / 'О нет...'",
+  "бззт": "Ошибка / 'Сбой системы'",
+  "вуп": "Удивление / 'Ничего себе!'",
+  "пиу-пиу": "Восторженное приветствие / 'Привет! Рад тебя видеть!'",
+  "бип-буп": "Стандартное подтверждение / 'Так точно!'",
+  "бип-бип": "Срочное внимание / 'Эй! Послушай!'",
+  "бу-бу": "Печаль / 'Какая досада'",
+  "пиу-пу": "Шутливое подкалывание / 'Ага, попался!'",
+  "бип-бу": "Недоумение / 'Стоп, что?'",
+  "буп-буп": "Настойчивость / 'Я же сказал да!'",
+  "пуу-пуу": "Утешение / 'Всё будет хорошо'",
+  "пиу-пиу-пиу": "Дикий восторг / 'ЭТО НЕВЕРОЯТНО!'",
+  "бип-бип-буп": "Сложное подтверждение / 'Обработка завершена'",
+  "бип-бип-бип": "Тревога / 'Внимание! Опасность!'",
+  "би-и-ип": "Долгое размышление / 'Дай подумать'",
+  "пи-и-ип": "Глубокая задумчивость / 'Хм, интересно'",
+  "буу-буу-буу": "Меланхолия / 'Я помню...'",
+  "бип-буп-бип-буп": "Счастливая мелодия / насвистывание",
+  "beep boop": "Стандартное приветствие / 'Здравствуй, человек'",
+  "beep": "Краткое подтверждение",
+  "boop": "Дружеский тычок / 'А вот и нет!'",
+  "bzzzt": "Системный сбой / 'Не сработало'",
+  "哔哔": "Приветствие по-китайски / '你好!'",
+  "ピュピュ": "Приветствие по-японски / 'こんにちは!'",
+  "bip-boup": "Приветствие по-французски / 'Bonjour!'",
+  "piep-piep": "Приветствие по-немецки / 'Guten Tag!'"
+};
+
+function toDroidScript(text) {
+  const sounds = Object.keys(DROID).sort((a,b)=>b.length-a.length).filter(k=>!"- !?.,".includes(k));
+  let result = [], i = 0, tl = text.toLowerCase();
+  while (i < tl.length) {
+    let found = false;
+    for (const s of sounds) {
+      if (tl.slice(i, i+s.length) === s) { result.push(DROID[s]); i += s.length; found = true; break; }
+    }
+    if (found) continue;
+    const ch = text[i];
+    if (DROID[ch]) result.push(DROID[ch]);
+    else if (DROID[ch.toLowerCase()]) result.push(DROID[ch.toLowerCase()]);
+    else result.push(ch);
+    i++;
+  }
+  return result.join("");
+}
+
+function translateBeep() {
+  const input = document.getElementById('beepInput').value.trim();
+  const trans = document.getElementById('beepTranslation');
+  const script = document.getElementById('beepScript');
+
+  if (!input) {
+    trans.textContent = '—'; trans.style.color = 'var(--text-dim)';
+    script.textContent = '—'; return;
+  }
+
+  // Find translation
+  let key = input.toLowerCase().replace(/[!?.]+$/g,'').trim();
+  let meaning = BEEP_MEANINGS[key] || BEEP_MEANINGS[Object.keys(BEEP_MEANINGS).find(k=>k===key||key.includes(k)||k.includes(key))];
+  trans.textContent = meaning || '🔍 Неизвестный бип...';
+  trans.style.color = meaning ? 'var(--accent)' : 'var(--text-dim)';
+  script.textContent = toDroidScript(input);
+}
+
+function translateHuman() {
+  const text = document.getElementById('humanInput').value.trim();
+  const beepEl = document.getElementById('humanBeep');
+  const scriptEl = document.getElementById('humanScript');
+  if (!text) { beepEl.textContent = '—'; scriptEl.textContent = '—'; return; }
+  const t = text.toLowerCase();
+  let beep;
+  if (/привет|здравствуй|hi|hello|hey/.test(t)) beep = 'Пиу-пиу!';
+  else if (/\?|что|как|зачем|почему|где|what|why|how/.test(t)) beep = 'Бип-буп?';
+  else if (/спасиб|thanks|thank|благодар/.test(t)) beep = 'Бип!';
+  else if (/да|yes|ok|конечно|ага/.test(t)) beep = 'Бип-буп!';
+  else if (/нет|no|not|never/.test(t)) beep = 'Пу-пу!';
+  else if (/круто|класс|супер|awesome|amazing|love/.test(t)) beep = 'Пиу-пиу-пиу!';
+  else if (/груст|плох|bad|sad|увы/.test(t)) beep = 'Бу-бу...';
+  else beep = ['Пиу-пиу!','Бип-буп!','Пиу!'][Math.floor(Math.random()*3)];
+  beepEl.textContent = beep;
+  scriptEl.textContent = toDroidScript(beep);
+}
+
+function setBeep(v) { document.getElementById('beepInput').value = v; translateBeep(); }
+function setHuman(v) { document.getElementById('humanInput').value = v; translateHuman(); }
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector(`.tab[onclick*="${name}"]`).classList.add('active');
+  document.getElementById(`panel-${name}`).classList.add('active');
+}
+
+// Render alphabet
+(function renderAlphabet() {
+  const sounds = [["пиу","⎎"],["бип","⍀"],["буп","⌰"],["пу","⌽"],["бу","⍉"],["вуп","⍊"],["бззт","⍙"],["пуу","⊖"],["буу","⊝"],["пи","⌿"],["би","⋔"],["beep","⌿"],["boop","⋔"],["bleep","⌆"],["bloop","⌇"],["bzzzt","⍟"],["wooop","⍓"]];
+  const punct = [["-","═"],["space","┊"],["!","⚡"],["?","⟐"],[".","●"],[",","⸝"]];
+  const sg = document.getElementById('soundGlyphs');
+  sounds.forEach(([s,g])=>{
+    const m = BEEP_MEANINGS[s]||'';
+    sg.innerHTML += `<div class="alphabet-item"><div class="glyph">${g}</div><div class="info"><div class="sound">${s}</div>${m ? `<div class="meaning">${m}</div>` : ''}</div></div>`;
+  });
+  const pg = document.getElementById('punctGlyphs');
+  punct.forEach(([s,g])=>{
+    pg.innerHTML += `<div class="alphabet-item"><div class="glyph">${g}</div><div class="info"><div class="sound">${s}</div></div></div>`;
+  });
+})();
+</script>
+</body>
+</html>
