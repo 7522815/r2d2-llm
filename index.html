@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>R2D2 LLM — Пиу-пиу!</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0e17;
+    --bg2: #111827;
+    --surface: #1a1f2e;
+    --surface2: #242b3d;
+    --border: #2a3348;
+    --primary: #4fc3f7;
+    --primary-dim: #1a3a4a;
+    --accent: #ffd54f;
+    --text: #e2e8f0;
+    --text-dim: #8892a6;
+    --text-muted: #5a647a;
+    --bubble-user: #1e3a5a;
+    --bubble-r2: #1a2a3a;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', -apple-system, sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ─── Header ─── */
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+    z-index: 10;
+  }
+
+  .r2d2-avatar {
+    width: 48px;
+    height: 48px;
+    background: radial-gradient(circle at 35% 35%, #e0e0e0, #9fa8b0);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    box-shadow: 0 0 20px rgba(79, 195, 247, 0.3);
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .r2d2-avatar::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 2px solid var(--primary);
+    opacity: 0.5;
+    animation: pulse-ring 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-ring {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.05); opacity: 0.2; }
+  }
+
+  .header-info h1 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
+  .header-info .status {
+    font-size: 12px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .status-dot.online { background: #4ade80; box-shadow: 0 0 8px #4ade8080; }
+  .status-dot.offline { background: #f87171; box-shadow: 0 0 8px #f8717180; }
+
+  .header-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-icon {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.2s;
+  }
+
+  .btn-icon:hover { background: var(--surface2); color: var(--text); }
+
+  /* ─── Chat ─── */
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scroll-behavior: smooth;
+  }
+
+  #chat::-webkit-scrollbar { width: 4px; }
+  #chat::-webkit-scrollbar-track { background: transparent; }
+  #chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .msg {
+    max-width: 80%;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    font-size: 15px;
+    line-height: 1.5;
+    animation: fade-in 0.2s ease-out;
+    word-break: break-word;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.user {
+    align-self: flex-end;
+    background: var(--bubble-user);
+    border: 1px solid #2a4a6a;
+    border-bottom-right-radius: 4px;
+  }
+
+  .msg.r2 {
+    align-self: flex-start;
+    background: var(--bubble-r2);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+
+  .msg.r2 .lang-badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--primary-dim);
+    color: var(--primary);
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .msg.r2 .typing-cursor {
+    display: inline-block;
+    width: 8px;
+    height: 16px;
+    background: var(--primary);
+    margin-left: 2px;
+    animation: blink 0.8s step-end infinite;
+    vertical-align: middle;
+    border-radius: 1px;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .msg-time {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-align: right;
+  }
+
+  .msg.user .msg-time { color: #5a7a9a; }
+
+  /* ─── Welcome ─── */
+  #welcome {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 20px;
+  }
+
+  #welcome .big-r2 {
+    font-size: 80px;
+    filter: drop-shadow(0 0 30px rgba(79, 195, 247, 0.3));
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  #welcome h2 {
+    font-size: 22px;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  #welcome p {
+    font-size: 14px;
+    max-width: 320px;
+    line-height: 1.6;
+  }
+
+  .lang-hints {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  .lang-hints span {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    cursor: default;
+  }
+
+  /* ─── Input ─── */
+  #input-bar {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+
+  #input-bar textarea {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
+    padding: 10px 14px;
+    resize: none;
+    min-height: 44px;
+    max-height: 120px;
+    line-height: 1.4;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  #input-bar textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.1);
+  }
+
+  #input-bar textarea::placeholder {
+    color: var(--text-muted);
+  }
+
+  #send-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: var(--primary);
+    color: #0a0e17;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  #send-btn:hover { background: #6fd4ff; transform: scale(1.05); }
+  #send-btn:active { transform: scale(0.95); }
+  #send-btn:disabled { background: var(--surface2); color: var(--text-muted); cursor: not-allowed; transform: none; }
+
+  /* ─── Settings Panel ─── */
+  #settings {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #settings.open { display: flex; }
+
+  .settings-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    width: 90%;
+    max-width: 400px;
+  }
+
+  .settings-box h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .settings-row:last-child { border-bottom: none; }
+
+  .settings-row label { font-size: 14px; color: var(--text-dim); }
+
+  .settings-row input[type="text"] {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 6px 10px;
+    font-size: 13px;
+    width: 220px;
+    outline: none;
+  }
+
+  .settings-row input[type="text"]:focus {
+    border-color: var(--primary);
+  }
+
+  .settings-close {
+    margin-top: 16px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .settings-close:hover { background: var(--surface2); }
+
+  /* ─── Mobile ─── */
+  @media (max-width: 600px) {
+    .msg { max-width: 90%; font-size: 14px; }
+    header { padding: 10px 14px; }
+    #chat { padding: 14px; }
+    #input-bar { padding: 10px 14px; }
+    .settings-box { width: 95%; padding: 18px; }
+    .settings-row input[type="text"] { width: 160px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="r2d2-avatar">🤖</div>
+  <div class="header-info">
+    <h1>R2D2 LLM</h1>
+    <div class="status">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Проверка связи...</span>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn-icon" onclick="clearChat()" title="Очистить чат">🗑️</button>
+    <button class="btn-icon" onclick="openSettings()" title="Настройки">⚙️</button>
+  </div>
+</header>
+
+<!-- Welcome Screen -->
+<div id="welcome">
+  <div class="big-r2">🤖</div>
+  <h2>Пиу-пиу!</h2>
+  <p>R2D2 LLM определяет язык и отвечает разными звуками. Просто напиши что-нибудь.</p>
+  <div class="lang-hints">
+    <span>🇷🇺 Привет</span>
+    <span>🇺🇸 Hello</span>
+    <span>🇨🇳 你好</span>
+    <span>🇯🇵 こんにちは</span>
+    <span>🇫🇷 Bonjour</span>
+    <span>🇩🇪 Hallo</span>
+    <span>🇪🇸 ¡Hola!</span>
+    <span>🇦🇪 مرحبا</span>
+    <span>🇰🇷 안녕</span>
+  </div>
+</div>
+
+<!-- Chat -->
+<div id="chat" style="display:none"></div>
+
+<!-- Input -->
+<div id="input-bar">
+  <textarea id="input" rows="1" placeholder="Напиши что-нибудь..." onkeydown="onInputKey(event)"></textarea>
+  <button id="send-btn" onclick="sendMessage()" disabled>➤</button>
+</div>
+
+<!-- Settings -->
+<div id="settings">
+  <div class="settings-box">
+    <h2>⚙️ Настройки</h2>
+    <div class="settings-row">
+      <label>API URL</label>
+      <input type="text" id="apiUrl" value="http://localhost:6969">
+    </div>
+    <div class="settings-row">
+      <label>Модель</label>
+      <input type="text" id="modelName" value="r2d2-1b" readonly style="opacity:0.5">
+    </div>
+    <div class="settings-row">
+      <label>Streaming</label>
+      <span style="font-size:13px;color:var(--text-dim)">✅ всегда включён</span>
+    </div>
+    <button class="settings-close" onclick="closeSettings()">Закрыть</button>
+  </div>
+</div>
+
+<script>
+// ─── State ───
+let isStreaming = false;
+let apiUrl = localStorage.getItem('r2d2_api_url') || 'http://localhost:6969';
+let modelName = 'r2d2-1b';
+
+document.getElementById('apiUrl').value = apiUrl;
+
+// ─── Check server status ───
+async function checkStatus() {
+  const dot = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  try {
+    const r = await fetch(`${apiUrl}/v1/models`, { signal: AbortSignal.timeout(3000) });
+    if (r.ok) {
+      dot.className = 'status-dot online';
+      text.textContent = 'Онлайн · Пиу-пиу!';
+      document.getElementById('send-btn').disabled = false;
+      document.getElementById('input').placeholder = 'Напиши что-нибудь...';
+    } else {
+      throw new Error();
+    }
+  } catch {
+    dot.className = 'status-dot offline';
+    text.textContent = 'R2D2 спит (сервер не отвечает)';
+    document.getElementById('send-btn').disabled = true;
+    document.getElementById('input').placeholder = 'Сервер не запущен...';
+  }
+}
+checkStatus();
+setInterval(checkStatus, 10000);
+
+// ─── Input auto-resize ───
+document.getElementById('input').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  document.getElementById('send-btn').disabled = !this.value.trim() || isStreaming;
+});
+
+function onInputKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+// ─── Add message ───
+function addMessage(content, role, lang) {
+  const chat = document.getElementById('chat');
+  const welcome = document.getElementById('welcome');
+
+  if (welcome.style.display !== 'none') {
+    welcome.style.display = 'none';
+    chat.style.display = 'flex';
+  }
+
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+
+  if (role === 'r2' && lang) {
+    const badge = document.createElement('div');
+    badge.className = 'lang-badge';
+    const flags = { ru:'🇷🇺', en:'🇺🇸', zh:'🇨🇳', ja:'🇯🇵', fr:'🇫🇷', de:'🇩🇪', es:'🇪🇸', ar:'🇦🇪', ko:'🇰🇷' };
+    badge.textContent = `${flags[lang] || '🌐'} ${lang.toUpperCase()}`;
+    div.appendChild(badge);
+  }
+
+  const text = document.createElement('span');
+  text.textContent = content;
+  div.appendChild(text);
+
+  const time = document.createElement('div');
+  time.className = 'msg-time';
+  time.textContent = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+  div.appendChild(time);
+
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return text;
+}
+
+// ─── Send message ───
+async function sendMessage() {
+  const input = document.getElementById('input');
+  const btn = document.getElementById('send-btn');
+  const text = input.value.trim();
+  if (!text || isStreaming) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  btn.disabled = true;
+
+  addMessage(text, 'user');
+
+  const msgEl = addMessage('', 'r2');
+  const cursor = document.createElement('span');
+  cursor.className = 'typing-cursor';
+  msgEl.after(cursor);
+
+  isStreaming = true;
+  let fullText = '';
+  let detectedLang = '';
+
+  try {
+    const response = await fetch(`${apiUrl}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: modelName,
+        messages: [{ role: 'user', content: text }],
+        stream: true
+      })
+    });
+
+    if (!response.ok) {
+      msgEl.textContent = '⚠️ Ошибка связи с R2D2 (его выключили из розетки)';
+      cursor.remove();
+      isStreaming = false;
+      btn.disabled = false;
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+          try {
+            const json = JSON.parse(line.slice(6));
+            const delta = json.choices?.[0]?.delta?.content || '';
+            if (delta) {
+              fullText += delta;
+              msgEl.textContent = fullText;
+              // Extract lang from first chunk's timestamp or detect from text
+              if (!detectedLang) {
+                // We don't have lang from API, just show text
+              }
+              document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+            }
+          } catch {}
+        }
+      }
+    }
+
+    // Detect language from the response content
+    msgEl.textContent = fullText;
+    cursor.remove();
+
+    // Simple language detection for badge
+    if (/[а-яёА-ЯЁ]/.test(fullText)) detectedLang = 'ru';
+    else if (/[\u4e00-\u9fff]/.test(fullText)) detectedLang = 'zh';
+    else if (/[\u3040-\u309f\u30a0-\u30ff]/.test(fullText)) detectedLang = 'ja';
+    else if (/[\uac00-\ud7af]/.test(fullText)) detectedLang = 'ko';
+    else if (/[\u0600-\u06ff]/.test(fullText)) detectedLang = 'ar';
+    else if (/[àâäéèêëîïôöùûüÿœæç]/i.test(fullText)) detectedLang = 'fr';
+    else if (/[äöüß]/i.test(fullText)) detectedLang = 'de';
+    else if (/[ñáéíóúü¿¡]/i.test(fullText)) detectedLang = 'es';
+    else detectedLang = 'en';
+
+    // Add language badge
+    const parent = msgEl.parentElement;
+    const badge = document.createElement('div');
+    badge.className = 'lang-badge';
+    const flags = { ru:'🇷🇺', en:'🇺🇸', zh:'🇨🇳', ja:'🇯🇵', fr:'🇫🇷', de:'🇩🇪', es:'🇪🇸', ar:'🇦🇪', ko:'🇰🇷' };
+    badge.textContent = `${flags[detectedLang] || '🌐'} ${detectedLang.toUpperCase()}`;
+    parent.insertBefore(badge, parent.firstChild);
+
+  } catch (err) {
+    msgEl.textContent = '⚠️ Связь с R2D2 потеряна (наверное, упал с велосипеда)';
+    cursor.remove();
+  }
+
+  isStreaming = false;
+  btn.disabled = false;
+  document.getElementById('input').focus();
+}
+
+// ─── Clear chat ───
+function clearChat() {
+  if (!confirm('Удалить всю переписку с R2D2?')) return;
+  document.getElementById('chat').innerHTML = '';
+  document.getElementById('chat').style.display = 'none';
+  document.getElementById('welcome').style.display = 'flex';
+}
+
+// ─── Settings ───
+function openSettings() {
+  document.getElementById('apiUrl').value = apiUrl;
+  document.getElementById('settings').classList.add('open');
+}
+
+function closeSettings() {
+  apiUrl = document.getElementById('apiUrl').value.replace(/\/+$/, '');
+  localStorage.setItem('r2d2_api_url', apiUrl);
+  document.getElementById('settings').classList.remove('open');
+  checkStatus();
+}
+
+// Close settings on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeSettings();
+});
+</script>
+</body>
+</html>
