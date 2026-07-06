@@ -128,6 +128,66 @@ kubectl apply -f r2d2-k8s.yaml
 docker run -p 6969:6969 ghcr.io/7522815/r2d2-llm:latest
 ```
 
+## R2D2 Visual Assistant 🎯
+
+A floating desktop companion that brings R2D2 to life on your screen.
+
+![R2D2 Visual Assistant](r2d2_assistant/screenshot.png)
+
+### Features
+
+| Capability | Description |
+|------------|-------------|
+| 👁️ **Animated R2D2** | Floating character with blinking eye, flashing LEDs, mood animations |
+| 🎤 **Voice Input** | Speak to R2D2 — speech-to-text with wake-word detection |
+| 🔊 **Voice Output** | R2D2 responds with authentic beeps via macOS TTS |
+| 🖥️ **Desktop Vision** | Capture screen, detect active window, get mouse position |
+| 🖱️ **Desktop Control** | Click, scroll, type, drag — control your desktop by voice |
+| 🧠 **AI Brain** | Integrates with R2D2 LLM or any OpenAI-compatible API |
+| 🌀 **Always-on-Top** | Stays visible above all windows, draggable anywhere |
+
+### Quick Start
+
+```bash
+# Install dependencies
+pip3 install pyautogui SpeechRecognition pyttsx3 mss sounddevice Pillow numpy
+
+# Launch the floating R2D2 (GUI + Voice)
+python3 app.py
+
+# Voice-only mode (no window)
+python3 app.py --voice
+
+# CLI mode
+python3 app.py --cli
+
+# One-shot query
+python3 app.py --query "What's the meaning of life?"
+```
+
+### Architecture
+
+```
+r2d2_assistant/
+├── app.py              # Main controller — connects everything
+├── r2d2_gui.py         # R2D2 character window (tkinter, animated)
+├── voice.py            # Speech-to-text + macOS TTS
+├── desktop_agent.py    # Screen capture + pyautogui control
+└── r2d2_client.py      # R2D2 LLM API client
+```
+
+Click on the R2D2 character to activate voice input, or just speak naturally — the wake listener will catch your commands.
+
+### Commands
+
+- **"click"** — click at current mouse position
+- **"scroll"** — scroll the page
+- **"type hello world"** — type text
+- **"screenshot"** or **"capture screen"** — take and describe a screenshot
+- **Anything else** — sent to R2D2 LLM for a beep response
+
+<sub>📸 Screenshot placeholder: run `python3 app.py` and you'll see R2D2 in the bottom-right corner of your screen.</sub>
+
 ## Research Paper
 
 Our paper *"R2D2: Recursive Resonance Decoding with Digital Intelligence"* is under review at Nature Machine Intelligence. Pre-print available at [arxiv.org/abs/2506.42069](https://arxiv.org/abs/2506.42069) (placeholder).
