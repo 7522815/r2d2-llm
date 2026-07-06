@@ -1,47 +1,53 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>R2D2 LLM — Пиу-пиу!</title>
+<title>R2D2-1B — Quantum-Sparse Mixture-of-Universal-Experts</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --bg: #0a0e17;
-    --bg2: #111827;
-    --surface: #1a1f2e;
-    --surface2: #242b3d;
-    --border: #2a3348;
-    --primary: #4fc3f7;
-    --primary-dim: #1a3a4a;
-    --accent: #ffd54f;
+    --bg: #05080f;
+    --bg2: #0a0e17;
+    --surface: #111827;
+    --surface2: #1a2035;
+    --border: #1e2940;
+    --border-active: #3b82f6;
+    --primary: #3b82f6;
+    --primary-glow: rgba(59, 130, 246, 0.15);
+    --accent: #f59e0b;
     --text: #e2e8f0;
-    --text-dim: #8892a6;
-    --text-muted: #5a647a;
-    --bubble-user: #1e3a5a;
-    --bubble-r2: #1a2a3a;
-    --radius: 16px;
-    --radius-sm: 10px;
+    --text-dim: #8892b0;
+    --text-muted: #4a5570;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --bubble-user: #0f1d38;
+    --bubble-r2: #0d1520;
+    --radius: 12px;
+    --radius-sm: 8px;
   }
 
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Space Grotesk', -apple-system, sans-serif;
+    font-family: 'Inter', -apple-system, sans-serif;
     height: 100vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    -webkit-font-smoothing: antialiased;
   }
 
   /* ─── Header ─── */
   header {
     background: var(--bg2);
     border-bottom: 1px solid var(--border);
-    padding: 12px 20px;
+    padding: 0 24px;
+    height: 56px;
     display: flex;
     align-items: center;
     gap: 16px;
@@ -49,145 +55,249 @@
     z-index: 10;
   }
 
-  .r2d2-avatar {
-    width: 48px;
-    height: 48px;
-    background: radial-gradient(circle at 35% 35%, #e0e0e0, #9fa8b0);
-    border-radius: 50%;
+  .brand {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    box-shadow: 0 0 20px rgba(79, 195, 247, 0.3);
-    flex-shrink: 0;
-    position: relative;
+    gap: 12px;
   }
 
-  .r2d2-avatar::after {
-    content: '';
-    position: absolute;
-    inset: -3px;
-    border-radius: 50%;
-    border: 2px solid var(--primary);
-    opacity: 0.5;
-    animation: pulse-ring 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse-ring {
-    0%, 100% { transform: scale(1); opacity: 0.5; }
-    50% { transform: scale(1.05); opacity: 0.2; }
-  }
-
-  .header-info h1 {
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-  }
-
-  .header-info .status {
-    font-size: 12px;
-    color: var(--text-dim);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .status-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-  }
-
-  .status-dot.online { background: #4ade80; box-shadow: 0 0 8px #4ade8080; }
-  .status-dot.offline { background: #f87171; box-shadow: 0 0 8px #f8717180; }
-
-  .header-actions {
-    margin-left: auto;
-    display: flex;
-    gap: 8px;
-  }
-
-  .btn-icon {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text-dim);
-    cursor: pointer;
+  .brand-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--primary), #6366f1);
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 16px;
-    transition: all 0.2s;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
   }
 
-  .btn-icon:hover { background: var(--surface2); color: var(--text); }
+  .brand-text h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .brand-text .version {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+  }
+
+  .header-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  .model-badge {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .model-badge .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 6px var(--success);
+  }
+
+  @keyframes pulse-online {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .status-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .status-area .stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .status-area .stat .val {
+    color: var(--text-dim);
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 4px;
+  }
+
+  .btn-icon {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: all 0.15s;
+  }
+
+  .btn-icon:hover { background: var(--surface); color: var(--text-dim); }
+
+  /* ─── Stats Bar ─── */
+  #stats-bar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  #stats-bar .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  #stats-bar .stat-value {
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  #stats-bar .stat-label {
+    color: var(--text-muted);
+  }
+
+  .stat-divider {
+    width: 1px;
+    height: 14px;
+    background: var(--border);
+  }
 
   /* ─── Chat ─── */
   #chat {
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
+    padding: 20px 24px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 6px;
     scroll-behavior: smooth;
   }
 
   #chat::-webkit-scrollbar { width: 4px; }
   #chat::-webkit-scrollbar-track { background: transparent; }
   #chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  #chat::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-  .msg {
-    max-width: 80%;
-    padding: 10px 16px;
-    border-radius: var(--radius);
-    font-size: 15px;
-    line-height: 1.5;
-    animation: fade-in 0.2s ease-out;
-    word-break: break-word;
+  .msg-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
-  @keyframes fade-in {
-    from { opacity: 0; transform: translateY(8px); }
+  .msg {
+    max-width: 72%;
+    padding: 10px 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    animation: msg-in 0.2s ease-out;
+    word-break: break-word;
+    position: relative;
+  }
+
+  @keyframes msg-in {
+    from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
   .msg.user {
     align-self: flex-end;
     background: var(--bubble-user);
-    border: 1px solid #2a4a6a;
-    border-bottom-right-radius: 4px;
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    border-radius: var(--radius) var(--radius) 4px var(--radius);
   }
 
   .msg.r2 {
     align-self: flex-start;
     background: var(--bubble-r2);
     border: 1px solid var(--border);
-    border-bottom-left-radius: 4px;
+    border-radius: var(--radius) var(--radius) var(--radius) 4px;
   }
 
-  .msg.r2 .lang-badge {
-    display: inline-block;
-    font-size: 10px;
-    padding: 1px 6px;
-    border-radius: 4px;
-    background: var(--primary-dim);
-    color: var(--primary);
+  .msg-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin-bottom: 4px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+    font-size: 11px;
   }
 
-  .msg.r2 .typing-cursor {
+  .msg-meta .role-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .msg.r2 .msg-meta .role-tag { color: var(--primary); }
+  .msg.user .msg-meta .role-tag { color: var(--accent); }
+
+  .msg-meta .msg-lang {
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .msg-meta .msg-time {
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    margin-left: auto;
+  }
+
+  .msg-content {
+    font-weight: 400;
+    letter-spacing: -0.005em;
+  }
+
+  .msg-content .cursor-blink {
     display: inline-block;
-    width: 8px;
-    height: 16px;
+    width: 6px;
+    height: 14px;
     background: var(--primary);
-    margin-left: 2px;
-    animation: blink 0.8s step-end infinite;
+    margin-left: 1px;
+    animation: blink 0.7s step-end infinite;
     vertical-align: middle;
     border-radius: 1px;
+    box-shadow: 0 0 4px var(--primary-glow);
   }
 
   @keyframes blink {
@@ -195,14 +305,14 @@
     50% { opacity: 0; }
   }
 
-  .msg-time {
+  .msg-tokens {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     color: var(--text-muted);
-    margin-top: 4px;
-    text-align: right;
   }
-
-  .msg.user .msg-time { color: #5a7a9a; }
 
   /* ─── Welcome ─── */
   #welcome {
@@ -211,115 +321,168 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 16px;
-    color: var(--text-dim);
+    gap: 20px;
+    padding: 40px 20px;
     text-align: center;
-    padding: 20px;
   }
 
-  #welcome .big-r2 {
-    font-size: 80px;
-    filter: drop-shadow(0 0 30px rgba(79, 195, 247, 0.3));
-    animation: float 3s ease-in-out infinite;
+  #welcome .model-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--primary), #6366f1, #8b5cf6);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    box-shadow: 0 0 40px var(--primary-glow);
+    position: relative;
   }
 
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+  #welcome .model-icon::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 24px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    animation: pulse-border 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-border {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.02); }
   }
 
   #welcome h2 {
-    font-size: 22px;
-    color: var(--text);
+    font-size: 24px;
     font-weight: 600;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--text), var(--primary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
-  #welcome p {
-    font-size: 14px;
-    max-width: 320px;
+  #welcome .subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    max-width: 400px;
     line-height: 1.6;
+    font-family: 'JetBrains Mono', monospace;
   }
 
-  .lang-hints {
+  #welcome .capabilities {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
     justify-content: center;
-    margin-top: 8px;
+    max-width: 480px;
   }
 
-  .lang-hints span {
-    font-size: 12px;
+  #welcome .capabilities span {
+    font-size: 11px;
     padding: 4px 10px;
-    border-radius: 20px;
+    border-radius: 4px;
     background: var(--surface);
     border: 1px solid var(--border);
-    cursor: default;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
   }
 
   /* ─── Input ─── */
   #input-bar {
     background: var(--bg2);
     border-top: 1px solid var(--border);
-    padding: 12px 20px;
+    padding: 12px 24px 16px;
     display: flex;
     gap: 10px;
     align-items: flex-end;
     flex-shrink: 0;
   }
 
-  #input-bar textarea {
+  .input-wrapper {
     flex: 1;
+    display: flex;
+    align-items: flex-end;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius);
+    transition: border-color 0.15s;
+  }
+
+  .input-wrapper:focus-within {
+    border-color: var(--border-active);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+  }
+
+  .input-wrapper textarea {
+    flex: 1;
+    background: transparent;
+    border: none;
     color: var(--text);
-    font-family: inherit;
-    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
     padding: 10px 14px;
     resize: none;
     min-height: 44px;
     max-height: 120px;
-    line-height: 1.4;
+    line-height: 1.5;
     outline: none;
-    transition: border-color 0.2s;
   }
 
-  #input-bar textarea:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.1);
-  }
-
-  #input-bar textarea::placeholder {
+  .input-wrapper textarea::placeholder {
     color: var(--text-muted);
   }
 
+  .input-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 6px 6px 0;
+  }
+
+  .input-btn {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+
+  .input-btn:hover { background: var(--surface2); color: var(--text-dim); }
+
   #send-btn {
     width: 44px; height: 44px;
-    border-radius: 50%;
+    border-radius: var(--radius-sm);
     border: none;
     background: var(--primary);
-    color: #0a0e17;
-    font-size: 20px;
+    color: #fff;
+    font-size: 18px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    font-family: 'Inter', sans-serif;
   }
 
-  #send-btn:hover { background: #6fd4ff; transform: scale(1.05); }
-  #send-btn:active { transform: scale(0.95); }
+  #send-btn:hover { background: #2563eb; }
+  #send-btn:active { transform: scale(0.97); }
   #send-btn:disabled { background: var(--surface2); color: var(--text-muted); cursor: not-allowed; transform: none; }
 
-  /* ─── Settings Panel ─── */
+  /* ─── Settings ─── */
   #settings {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(8px);
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(16px);
     z-index: 100;
     align-items: center;
     justify-content: center;
@@ -331,27 +494,32 @@
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 24px;
+    padding: 28px;
     width: 90%;
-    max-width: 400px;
+    max-width: 420px;
   }
 
   .settings-box h2 {
-    font-size: 18px;
-    margin-bottom: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: -0.01em;
   }
 
   .settings-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 0;
+    padding: 12px 0;
     border-bottom: 1px solid var(--border);
   }
 
   .settings-row:last-child { border-bottom: none; }
 
-  .settings-row label { font-size: 14px; color: var(--text-dim); }
+  .settings-row label {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
 
   .settings-row input[type="text"] {
     background: var(--surface);
@@ -360,16 +528,17 @@
     color: var(--text);
     padding: 6px 10px;
     font-size: 13px;
-    width: 220px;
+    width: 200px;
     outline: none;
+    font-family: 'JetBrains Mono', monospace;
   }
 
   .settings-row input[type="text"]:focus {
-    border-color: var(--primary);
+    border-color: var(--border-active);
   }
 
   .settings-close {
-    margin-top: 16px;
+    margin-top: 20px;
     width: 100%;
     padding: 10px;
     border: 1px solid var(--border);
@@ -377,56 +546,102 @@
     background: var(--surface);
     color: var(--text);
     font-family: inherit;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s;
   }
 
-  .settings-close:hover { background: var(--surface2); }
+  .settings-close:hover { background: var(--surface2); border-color: var(--text-muted); }
 
   /* ─── Mobile ─── */
-  @media (max-width: 600px) {
-    .msg { max-width: 90%; font-size: 14px; }
-    header { padding: 10px 14px; }
-    #chat { padding: 14px; }
-    #input-bar { padding: 10px 14px; }
-    .settings-box { width: 95%; padding: 18px; }
-    .settings-row input[type="text"] { width: 160px; }
+  @media (max-width: 640px) {
+    header { padding: 0 16px; }
+    #stats-bar { padding: 0 16px; gap: 12px; overflow-x: auto; }
+    #chat { padding: 12px 16px; }
+    .msg { max-width: 88%; font-size: 14px; }
+    #input-bar { padding: 10px 16px 14px; }
+    .settings-box { width: 95%; padding: 20px; }
+    .settings-row input[type="text"] { width: 140px; }
+    .header-center { display: none; }
+    #stats-bar { font-size: 10px; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="r2d2-avatar">🤖</div>
-  <div class="header-info">
-    <h1>R2D2 LLM</h1>
-    <div class="status">
-      <span class="status-dot" id="statusDot"></span>
-      <span id="statusText">Проверка связи...</span>
+  <div class="brand">
+    <div class="brand-icon">R</div>
+    <div class="brand-text">
+      <h1>R2D2</h1>
+      <div class="version">QS-MoUE · 17.3T params · v1.0</div>
+    </div>
+  </div>
+  <div class="header-center">
+    <div class="model-badge" id="modelBadge">
+      <span class="dot"></span>
+      <span>r2d2-1b · online</span>
     </div>
   </div>
   <div class="header-actions">
-    <button class="btn-icon" onclick="clearChat()" title="Очистить чат">🗑️</button>
-    <button class="btn-icon" onclick="openSettings()" title="Настройки">⚙️</button>
+    <button class="btn-icon" onclick="clearChat()" title="Clear session">✕</button>
+    <button class="btn-icon" onclick="openSettings()" title="Settings">⚙</button>
   </div>
 </header>
 
+<!-- Stats Bar -->
+<div id="stats-bar">
+  <div class="stat-item">
+    <span class="stat-label">model</span>
+    <span class="stat-value">r2d2-1b</span>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <span class="stat-label">params</span>
+    <span class="stat-value">17.3T</span>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <span class="stat-label">ctx</span>
+    <span class="stat-value">∞</span>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <span class="stat-label">status</span>
+    <span class="stat-value" id="statusDisplay">connecting...</span>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <span class="stat-label">hallucinations</span>
+    <span class="stat-value" style="color: var(--success)">0.00%</span>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <span class="stat-label">latency</span>
+    <span class="stat-value" id="latencyDisplay">—</span>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <span class="stat-label">tokens</span>
+    <span class="stat-value" id="tokensDisplay">0</span>
+  </div>
+</div>
+
 <!-- Welcome Screen -->
 <div id="welcome">
-  <div class="big-r2">🤖</div>
-  <h2>Пиу-пиу!</h2>
-  <p>R2D2 LLM определяет язык и отвечает разными звуками. Просто напиши что-нибудь.</p>
-  <div class="lang-hints">
-    <span>🇷🇺 Привет</span>
-    <span>🇺🇸 Hello</span>
-    <span>🇨🇳 你好</span>
-    <span>🇯🇵 こんにちは</span>
-    <span>🇫🇷 Bonjour</span>
-    <span>🇩🇪 Hallo</span>
-    <span>🇪🇸 ¡Hola!</span>
-    <span>🇦🇪 مرحبا</span>
-    <span>🇰🇷 안녕</span>
+  <div class="model-icon">✦</div>
+  <h2>R2D2-1B</h2>
+  <div class="subtitle">Quantum-Sparse Mixture-of-Universal-Experts · Zero-shot general intelligence · Zero hallucination guarantee</div>
+  <div class="capabilities">
+    <span>NLP</span>
+    <span>Vision</span>
+    <span>Audio</span>
+    <span>3D Reasoning</span>
+    <span>Code</span>
+    <span>Math</span>
+    <span>8,432 Languages</span>
+    <span>Infinite Context</span>
+    <span>Multimodal Fusion</span>
   </div>
 </div>
 
@@ -435,63 +650,79 @@
 
 <!-- Input -->
 <div id="input-bar">
-  <textarea id="input" rows="1" placeholder="Напиши что-нибудь..." onkeydown="onInputKey(event)"></textarea>
-  <button id="send-btn" onclick="sendMessage()" disabled>➤</button>
+  <div class="input-wrapper">
+    <textarea id="input" rows="1" placeholder="Enter your prompt..." onkeydown="onInputKey(event)"></textarea>
+    <div class="input-actions">
+      <button class="input-btn" id="langBtn" title="Auto-detect language">🌐</button>
+    </div>
+  </div>
+  <button id="send-btn" onclick="sendMessage()" disabled>↵</button>
 </div>
 
 <!-- Settings -->
 <div id="settings">
   <div class="settings-box">
-    <h2>⚙️ Настройки</h2>
+    <h2>⚙ Configuration</h2>
     <div class="settings-row">
-      <label>API URL</label>
-      <input type="text" id="apiUrl" value="http://localhost:6969">
+      <label>API Endpoint</label>
+      <input type="text" id="apiUrl">
     </div>
     <div class="settings-row">
-      <label>Модель</label>
-      <input type="text" id="modelName" value="r2d2-1b" readonly style="opacity:0.5">
+      <label>Model</label>
+      <input type="text" id="modelName" value="r2d2-1b" readonly style="opacity:0.4">
+    </div>
+    <div class="settings-row">
+      <label>Architecture</label>
+      <span style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;">QS-MoUE</span>
     </div>
     <div class="settings-row">
       <label>Streaming</label>
-      <span style="font-size:13px;color:var(--text-dim)">✅ всегда включён</span>
+      <span style="font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;">enabled</span>
     </div>
-    <button class="settings-close" onclick="closeSettings()">Закрыть</button>
+    <button class="settings-close" onclick="closeSettings()">Close</button>
   </div>
 </div>
 
 <script>
 // ─── State ───
 let isStreaming = false;
+let totalTokens = 0;
 let apiUrl = localStorage.getItem('r2d2_api_url') || 'http://localhost:6969';
 let modelName = 'r2d2-1b';
 
 document.getElementById('apiUrl').value = apiUrl;
 
-// ─── Check server status ───
+// ─── Server Status ───
 async function checkStatus() {
-  const dot = document.getElementById('statusDot');
-  const text = document.getElementById('statusText');
+  const display = document.getElementById('statusDisplay');
+  const badge = document.getElementById('modelBadge');
+  const btn = document.getElementById('send-btn');
+  const input = document.getElementById('input');
   try {
+    const start = performance.now();
     const r = await fetch(`${apiUrl}/v1/models`, { signal: AbortSignal.timeout(3000) });
+    const elapsed = performance.now() - start;
     if (r.ok) {
-      dot.className = 'status-dot online';
-      text.textContent = 'Онлайн · Пиу-пиу!';
-      document.getElementById('send-btn').disabled = false;
-      document.getElementById('input').placeholder = 'Напиши что-нибудь...';
+      display.textContent = 'online';
+      display.style.color = 'var(--success)';
+      badge.style.display = 'flex';
+      btn.disabled = false;
+      input.placeholder = 'Enter your prompt...';
     } else {
       throw new Error();
     }
   } catch {
-    dot.className = 'status-dot offline';
-    text.textContent = 'R2D2 спит (сервер не отвечает)';
-    document.getElementById('send-btn').disabled = true;
-    document.getElementById('input').placeholder = 'Сервер не запущен...';
+    display.textContent = 'offline';
+    display.style.color = 'var(--danger)';
+    badge.style.display = 'none';
+    btn.disabled = true;
+    input.placeholder = 'Server offline — start with: python3 r2d2_llm.py --api';
   }
 }
 checkStatus();
-setInterval(checkStatus, 10000);
+setInterval(checkStatus, 15000);
 
-// ─── Input auto-resize ───
+// ─── Input ───
 document.getElementById('input').addEventListener('input', function() {
   this.style.height = 'auto';
   this.style.height = Math.min(this.scrollHeight, 120) + 'px';
@@ -504,6 +735,29 @@ function onInputKey(e) {
     sendMessage();
   }
 }
+
+// ─── Language detection (client-side) ───
+function detectLang(text) {
+  const patterns = [
+    { lang: 'ru', re: /[а-яёА-ЯЁ]/ },
+    { lang: 'zh', re: /[\u4e00-\u9fff]/ },
+    { lang: 'ja', re: /[\u3040-\u309f\u30a0-\u30ff]/ },
+    { lang: 'ko', re: /[\uac00-\ud7af]/ },
+    { lang: 'ar', re: /[\u0600-\u06ff]/ },
+    { lang: 'fr', re: /[àâäéèêëîïôöùûüÿœæç]/i },
+    { lang: 'de', re: /[äöüß]/i },
+    { lang: 'es', re: /[ñáéíóúü¿¡]/i },
+  ];
+  for (const { lang, re } of patterns) {
+    if (re.test(text)) return lang;
+  }
+  return 'en';
+}
+
+const LANG_MAP = {
+  ru: '🇷🇺 RUS', en: '🇺🇸 ENG', zh: '🇨🇳 CHN', ja: '🇯🇵 JPN',
+  ko: '🇰🇷 KOR', ar: '🇦🇪 ARB', fr: '🇫🇷 FRA', de: '🇩🇪 DEU', es: '🇪🇸 ESP'
+};
 
 // ─── Add message ───
 function addMessage(content, role, lang) {
@@ -518,26 +772,36 @@ function addMessage(content, role, lang) {
   const div = document.createElement('div');
   div.className = `msg ${role}`;
 
+  // Meta row
+  const meta = document.createElement('div');
+  meta.className = 'msg-meta';
+  const tag = document.createElement('span');
+  tag.className = 'role-tag';
+  tag.textContent = role === 'r2' ? 'R2D2-1B' : 'You';
+  meta.appendChild(tag);
+
   if (role === 'r2' && lang) {
-    const badge = document.createElement('div');
-    badge.className = 'lang-badge';
-    const flags = { ru:'🇷🇺', en:'🇺🇸', zh:'🇨🇳', ja:'🇯🇵', fr:'🇫🇷', de:'🇩🇪', es:'🇪🇸', ar:'🇦🇪', ko:'🇰🇷' };
-    badge.textContent = `${flags[lang] || '🌐'} ${lang.toUpperCase()}`;
-    div.appendChild(badge);
+    const langBadge = document.createElement('span');
+    langBadge.className = 'msg-lang';
+    langBadge.textContent = LANG_MAP[lang] || lang.toUpperCase();
+    meta.appendChild(langBadge);
   }
 
-  const text = document.createElement('span');
-  text.textContent = content;
-  div.appendChild(text);
-
-  const time = document.createElement('div');
+  const time = document.createElement('span');
   time.className = 'msg-time';
-  time.textContent = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
-  div.appendChild(time);
+  time.textContent = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  meta.appendChild(time);
+  div.appendChild(meta);
+
+  // Content
+  const contentEl = document.createElement('div');
+  contentEl.className = 'msg-content';
+  contentEl.textContent = content;
+  div.appendChild(contentEl);
 
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
-  return text;
+  return contentEl;
 }
 
 // ─── Send message ───
@@ -553,14 +817,14 @@ async function sendMessage() {
 
   addMessage(text, 'user');
 
-  const msgEl = addMessage('', 'r2');
+  const msgContent = addMessage('', 'r2');
   const cursor = document.createElement('span');
-  cursor.className = 'typing-cursor';
-  msgEl.after(cursor);
+  cursor.className = 'cursor-blink';
+  msgContent.after(cursor);
 
   isStreaming = true;
   let fullText = '';
-  let detectedLang = '';
+  const startTime = performance.now();
 
   try {
     const response = await fetch(`${apiUrl}/v1/chat/completions`, {
@@ -574,7 +838,7 @@ async function sendMessage() {
     });
 
     if (!response.ok) {
-      msgEl.textContent = '⚠️ Ошибка связи с R2D2 (его выключили из розетки)';
+      msgContent.textContent = '⚠️ Inference server returned ' + response.status;
       cursor.remove();
       isStreaming = false;
       btn.disabled = false;
@@ -600,11 +864,9 @@ async function sendMessage() {
             const delta = json.choices?.[0]?.delta?.content || '';
             if (delta) {
               fullText += delta;
-              msgEl.textContent = fullText;
-              // Extract lang from first chunk's timestamp or detect from text
-              if (!detectedLang) {
-                // We don't have lang from API, just show text
-              }
+              msgContent.textContent = fullText;
+              totalTokens++;
+              document.getElementById('tokensDisplay').textContent = totalTokens;
               document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
             }
           } catch {}
@@ -612,31 +874,32 @@ async function sendMessage() {
       }
     }
 
-    // Detect language from the response content
-    msgEl.textContent = fullText;
+    const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
+    document.getElementById('latencyDisplay').textContent = elapsed + 's';
+
+    msgContent.textContent = fullText;
     cursor.remove();
 
-    // Simple language detection for badge
-    if (/[а-яёА-ЯЁ]/.test(fullText)) detectedLang = 'ru';
-    else if (/[\u4e00-\u9fff]/.test(fullText)) detectedLang = 'zh';
-    else if (/[\u3040-\u309f\u30a0-\u30ff]/.test(fullText)) detectedLang = 'ja';
-    else if (/[\uac00-\ud7af]/.test(fullText)) detectedLang = 'ko';
-    else if (/[\u0600-\u06ff]/.test(fullText)) detectedLang = 'ar';
-    else if (/[àâäéèêëîïôöùûüÿœæç]/i.test(fullText)) detectedLang = 'fr';
-    else if (/[äöüß]/i.test(fullText)) detectedLang = 'de';
-    else if (/[ñáéíóúü¿¡]/i.test(fullText)) detectedLang = 'es';
-    else detectedLang = 'en';
+    // Detect language and update message
+    const detectedLang = detectLang(fullText);
+    const parent = msgContent.parentElement;
+    const meta = parent.querySelector('.msg-meta');
+    if (meta) {
+      const langBadge = document.createElement('span');
+      langBadge.className = 'msg-lang';
+      langBadge.textContent = LANG_MAP[detectedLang] || detectedLang.toUpperCase();
+      // Insert after role tag
+      meta.insertBefore(langBadge, meta.querySelector('.msg-time'));
+    }
 
-    // Add language badge
-    const parent = msgEl.parentElement;
-    const badge = document.createElement('div');
-    badge.className = 'lang-badge';
-    const flags = { ru:'🇷🇺', en:'🇺🇸', zh:'🇨🇳', ja:'🇯🇵', fr:'🇫🇷', de:'🇩🇪', es:'🇪🇸', ar:'🇦🇪', ko:'🇰🇷' };
-    badge.textContent = `${flags[detectedLang] || '🌐'} ${detectedLang.toUpperCase()}`;
-    parent.insertBefore(badge, parent.firstChild);
+    // Token stats
+    const tokens = document.createElement('div');
+    tokens.className = 'msg-tokens';
+    tokens.textContent = `⟐ ${fullText.length} chars · ${fullText.split(' ').length} words · ${detectedLang.toUpperCase()} · ${elapsed}s`;
+    parent.appendChild(tokens);
 
   } catch (err) {
-    msgEl.textContent = '⚠️ Связь с R2D2 потеряна (наверное, упал с велосипеда)';
+    msgContent.textContent = '⚠️ Connection lost: ' + err.message;
     cursor.remove();
   }
 
@@ -645,12 +908,14 @@ async function sendMessage() {
   document.getElementById('input').focus();
 }
 
-// ─── Clear chat ───
+// ─── Clear ───
 function clearChat() {
-  if (!confirm('Удалить всю переписку с R2D2?')) return;
   document.getElementById('chat').innerHTML = '';
   document.getElementById('chat').style.display = 'none';
   document.getElementById('welcome').style.display = 'flex';
+  totalTokens = 0;
+  document.getElementById('tokensDisplay').textContent = '0';
+  document.getElementById('latencyDisplay').textContent = '—';
 }
 
 // ─── Settings ───
@@ -666,7 +931,6 @@ function closeSettings() {
   checkStatus();
 }
 
-// Close settings on Escape
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeSettings();
 });
