@@ -687,7 +687,7 @@
 // ─── State ───
 let isStreaming = false;
 let totalTokens = 0;
-let apiUrl = localStorage.getItem('r2d2_api_url') || 'http://localhost:6969';
+let apiUrl = localStorage.getItem('r2d2_api_url') || (window.location.origin || 'http://localhost:6969');
 let modelName = 'r2d2-1b';
 
 document.getElementById('apiUrl').value = apiUrl;
