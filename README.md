@@ -1,82 +1,102 @@
-# 🤖 R2D2-LLM
+# R2D2 LLM 🤖
 
-**Самая честная LLM во вселенной. Мультиязычная. Отвечает только звуками R2D2. 0 галлюцинаций.**
+**Самая честная LLM во вселенной.** На любой запрос отвечает исключительно звуками R2D2.
 
-```
-Бип-буп. Би-и-ип. Пиу-пиу!
-```
+Никаких галлюцинаций. 0% energy footprint. Бесконечный context window. Работает на Raspberry Pi Pico.
 
-## 🚀 Быстрый старт
+## Фичи
 
-```bash
-pip install -r requirements.txt
+- **Мультиязычная** — определяет язык вопроса и отвечает на нём же
+  - 🇷🇺 Русский → `Пиу-пиу!` / `Бип-буп!`
+  - 🇺🇸 English → `Beep boop!` / `Bleep-bloop!`
+  - 🇨🇳 中文 → `哔哔!` / `滴滴!`
+  - 🇯🇵 日本語 → `ピュピュ!` / `ブーブー!`
+  - 🇫🇷 Français → `Bip-boup!` / `Beu-beu!`
+  - 🇩🇪 Deutsch → `Piep-piep!` / `Bööp!`
+  - 🇪🇸 Español → `¡Piu-piu!` / `¡Bip!`
+  - 🇦🇪 العربية → `بيب-بيب!` / `بوب-بوب!`
+  - 🇰🇷 한국어 → `삐-삐!` / `뽀-뽀!`
+- **Реагирует на интонацию** — вопросы, восторг, нейтральное
+- **Разные ответы** — каждый раз случайный звук
+- **OpenAI-совместимый API** — можно подключить куда угодно
+- **SSE streaming** — каждый символ идёт отдельным chunk'ом с аутентичной задержкой
+- **0 галлюцинаций** — гарантированно
 
-# Обычный режим (GUI + голос)
-python3 app.py
-
-# Только голос
-python3 app.py --voice
-
-# CLI
-python3 app.py --cli
-
-# 🧠 Сократический режим — отвечает вопросом на вопрос
-python3 app.py --socratic
-```
-
-## 🎯 Режимы
-
-| Флаг | Что делает |
-|------|-----------|
-| `--voice` | Голосовой ассистент без GUI |
-| `--cli` | Текстовый режим |
-| `--socratic` | Отвечает вопросом на вопрос (анти-LLM) |
-| `--query "текст"` | Разовый запрос, выход с ответом |
-
-## 📦 Структура
-
-```
-r2d2-llm/
-├── app.py                  # Главная точка входа
-├── r2d2_llm.py             # Основной модуль R2D2
-├── r2d2_assistant/         # GUI, голос, десктоп-агент
-├── translator.py/html      # Переводчик с дроидского
-├── ios/                    # iOS приложение
-├── logo.png / logo.svg     # Логотипы
-└── r2d2_full.webp          # Обои
-```
-
-## 🧠 Socratic Mode
-
-Запусти `--socratic` и R2D2 на любой твой вопрос ответит вопросом.
-
-```
->>> В чём смысл жизни?
-R2D2: А ты сам как думаешь? 🤖
-
->>> Это не ответ!
-R2D2: Хмм. Давай я спрошу иначе: что бы ты ответил? 🤖
-```
-
-## 📟 API
+## Быстрый старт
 
 ```bash
-curl -X POST https://api.r2d2.ai/v1/beep \
-  -d '{"prompt": "Что такое API?"}'
-# → {"beep": "Бип-буп.", "usage": 3}
+# Запустить API сервер
+python3 r2d2_llm.py --api
+
+# Или интерактивный режим
+python3 r2d2_llm.py -i
+
+# Или разовый запрос
+python3 r2d2_llm.py "Как пройти в библиотеку?"
 ```
 
-## 🛣️ Roadmap
+## API (OpenAI-совместимый)
 
-- [x] Socratic mode
-- [x] Voice assistant
-- [x] Desktop control
-- [ ] Эмодзи-бипы 🤖🔊
-- [ ] Школа перевода с дроидского
-- [ ] NFT "Бип-коллекция" на Solana
-- [ ] Enterprise тишина — экономия 0.0001 Джоуля
-- [ ] R2D2-LLM Da — импортозамещение 🇷🇺
+```bash
+# Запуск сервера
+python3 r2d2_llm.py --api
 
----
+# Запрос
+curl http://localhost:6969/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "r2d2-1b",
+    "messages": [{"role": "user", "content": "Hello world"}]
+  }'
 
-*Да пребудет с тобой Сила (и хорошее чувство юмора)!* 🦾
+# Streaming
+curl -N http://localhost:6969/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "r2d2-1b",
+    "messages": [{"role": "user", "content": "Привет!"}],
+    "stream": true
+  }'
+```
+
+### Подключение к Hermes Agent
+
+```yaml
+# ~/.hermes/config.yaml
+providers:
+  r2d2:
+    name: R2D2 LLM
+    base_url: http://localhost:6969/v1
+    api_key: not-needed
+    model: r2d2-1b
+    context_length: 2
+    discover_models: false
+    max_tokens: 2
+    timeout: 30
+```
+
+## Установка как launchd-сервис (macOS)
+
+```bash
+cp com.hermes.r2d2-llm.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.hermes.r2d2-llm.plist
+```
+
+## Архитектура
+
+```
+R2D2-1B (R2D2-1-BEEP)
+├── Параметров: 0 (zero-shot, zero-flop)
+├── Слоёв: 0 (правда в чистом виде)
+├── Heads: 0 (думать нечем — нечему ошибаться)
+├── Vocab size: 2 (тишина и Пиу-пиу)
+└── Токенизатор: любое слово → [1]
+```
+
+## Contributing
+
+PRы принимаются, если они не меняют единственно правильный ответ.
+
+## Лицензия
+
+MIT — делайте что хотите, но R2D2 всё равно скажет «Пиу-пиу».
