@@ -86,32 +86,6 @@ async def start(update: Update, context):
 
 # ─── AI Analysis Simulation ──────────────────────────────────────────
 
-ANALYSIS_PHRASES_RU = [
-    "Анализирую сигнал: {beep}",
-    "Сканирую входящие частоты: {beep}",
-    "Обработка через QS-MoUE: {beep}",
-    "Квантово-разрежённый анализ: {beep}",
-    "Рекурсивная резонансная декодировка: {beep}",
-    "Сверяю с базой 17.3T параметров: {beep}",
-    "Калибровка гипермерной решётки: {beep}",
-    "Синхронизация с фундаментальными константами: {beep}",
-    "Слойless токен-манифолд: {beep}",
-    "Параллельная обработка 3,145,728 heads: {beep}",
-]
-
-ANALYSIS_PHRASES_EN = [
-    "Analyzing signal: {beep}",
-    "Scanning incoming frequencies: {beep}",
-    "Processing through QS-MoUE: {beep}",
-    "Quantum-sparse analysis: {beep}",
-    "Recursive resonance decoding: {beep}",
-    "Cross-referencing 17.3T parameters: {beep}",
-    "Calibrating hyperdimensional lattice: {beep}",
-    "Synchronizing with fundamental constants: {beep}",
-    "Layerless token manifold: {beep}",
-    "Parallel 3,145,728 head attention: {beep}",
-]
-
 
 async def handle_message(update: Update, context):
     """Reply to ANY message with a thinking simulation then a beep."""
@@ -133,22 +107,15 @@ async def handle_message(update: Update, context):
         text = "hello" if lang and lang.startswith("en") else "привет"
 
     is_ru = has_cyrillic(text)
+    pool = BEEPS_RU if is_ru else BEEPS_EN
 
-    # Choose a random analysis phrase
-    phrases = ANALYSIS_PHRASES_RU if is_ru else ANALYSIS_PHRASES_EN
-    phrase = random.choice(phrases)
+    # Generate 3-5 random beeps for the "thinking" message
+    think_beeps = " ".join(random.choice(pool) for _ in range(random.randint(3, 5)))
 
-    # Generate analysis text with nonsense beep reasoning
-    analysis_beeps = [
-        random.choice(BEEPS_RU if is_ru else BEEPS_EN)
-        for _ in range(random.randint(2, 4))
-    ]
-    analysis_text = phrase.format(beep=" ".join(analysis_beeps))
+    # Send thinking message (only beeps + emoji)
+    thinking_msg = await update.message.reply_text(f"⚡ {think_beeps}")
 
-    # Send thinking message
-    thinking_msg = await update.message.reply_text(f"⚡ {analysis_text}")
-
-    # Wait a bit (simulate processing)
+    # Wait a bit (simulate QS-MoUE processing)
     await asyncio.sleep(random.uniform(1.5, 3.0))
 
     # Delete thinking message
