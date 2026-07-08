@@ -84,13 +84,41 @@ async def start(update: Update, context):
 
 
 async def handle_message(update: Update, context):
-    """Reply to any message with an R2D2 beep."""
-    if not update.message or not update.message.text:
+    """Reply to ANY message with an R2D2 beep — text, voice, photo, sticker, etc."""
+    if not update.message:
         return
 
-    text = update.message.text
+    # Determine user language from any available text
+    text = ""
+
+    if update.message.text:
+        text = update.message.text
+    elif update.message.caption:
+        text = update.message.caption
+    elif update.message.poll:
+        text = update.message.poll.question
+
+    # Detect language from text, or from user info
+    if not text:
+        user = update.message.from_user
+        lang = user.language_code if user else "en"
+        text = "hello" if lang and lang.startswith("en") else "привет"
+
     beep = get_r2d2_beep(text)
-    await update.message.reply_text(beep)
+
+    # Reply differently based on content type
+    if update.message.voice:
+        await update.message.reply_text(f"🎤 {beep}")
+    elif update.message.photo:
+        await update.message.reply_text(f"📷 {beep}")
+    elif update.message.video:
+        await update.message.reply_text(f"🎬 {beep}")
+    elif update.message.sticker:
+        await update.message.reply_text(beep)
+    elif update.message.audio or update.message.document:
+        await update.message.reply_text(beep)
+    else:
+        await update.message.reply_text(beep)
 
 
 async def handle_join_request(update: Update, context):
@@ -126,7 +154,8 @@ def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    # Handles ALL messages: text, voice, photo, video, sticker, etc.
+    app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
     app.add_handler(ChatJoinRequestHandler(handle_join_request))
     app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, handle_new_members))
 
