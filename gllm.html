@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GLLM v1.0 — The Only Honest LLM</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0f0505; --bg2: #170a0a; --surface: #221111;
+    --surface2: #331a1a; --border: #441e1e; --border-active: #ef4444;
+    --primary: #ef4444; --primary-glow: rgba(239,68,68,0.15);
+    --accent: #f59e0b; --text: #e2e8f0; --text-dim: #b08888;
+    --text-muted: #6a4450; --success: #10b981; --danger: #ef4444;
+    --bubble-user: #2d1111; --bubble-gllm: #1a0a0a;
+    --radius: 12px; --radius-sm: 8px;
+  }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px;
+    flex-shrink: 0; z-index: 10;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--primary), #dc2626);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .brand-text h1 { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  .brand-text .version { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono',monospace; font-weight: 500; }
+  .header-center { flex: 1; display: flex; justify-content: center; }
+  .header-nav { display: flex; gap: 4px; background: var(--surface); border-radius: 8px; padding: 3px; }
+  .header-nav a {
+    padding: 6px 16px; border-radius: 5px; font-size: 12px; font-weight: 500;
+    text-decoration: none; transition: all .15s; color: var(--text-muted);
+    font-family: 'JetBrains Mono',monospace;
+  }
+  .header-nav a:hover { color: var(--text-dim); background: var(--surface2); }
+  .header-nav a.active { background: var(--surface2); color: var(--primary); border: 1px solid var(--border); }
+  .header-actions { display: flex; gap: 4px; }
+  .btn-icon { width: 32px; height: 32px; border-radius: 6px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; transition: all .15s; }
+  .btn-icon:hover { background: var(--surface); color: var(--text-dim); }
+  #stats-bar {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 0 24px; height: 36px; display: flex; align-items: center; gap: 24px;
+    font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono',monospace;
+    flex-shrink: 0; overflow: hidden;
+  }
+  #stats-bar .stat-item { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  #stats-bar .stat-value { color: var(--text-dim); font-weight: 500; }
+  #stats-bar .stat-label { color: var(--text-muted); }
+  .stat-divider { width: 1px; height: 14px; background: var(--border); }
+  .stat-warning { color: var(--primary); }
+  #chat {
+    flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column;
+    gap: 6px; scroll-behavior: smooth;
+  }
+  #chat::-webkit-scrollbar { width: 4px; }
+  #chat::-webkit-scrollbar-track { background: transparent; }
+  #chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .msg { max-width: 80%; padding: 10px 16px; font-size: 14px; line-height: 1.6; animation: msg-in .2s ease-out; word-break: break-word; position: relative; }
+  @keyframes msg-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .msg.user { align-self: flex-end; background: var(--bubble-user); border: 1px solid rgba(239,68,68,.15); border-radius: var(--radius) var(--radius) 4px var(--radius); }
+  .msg.gllm { align-self: flex-start; background: var(--bubble-gllm); border: 1px solid var(--border); border-radius: var(--radius) var(--radius) var(--radius) 4px; border-left: 3px solid var(--primary); }
+  .msg-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 11px; }
+  .msg-meta .role-tag { font-family: 'JetBrains Mono',monospace; font-weight: 500; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; }
+  .msg.gllm .msg-meta .role-tag { color: var(--primary); }
+  .msg.user .msg-meta .role-tag { color: var(--accent); }
+  .msg-meta .msg-time { color: var(--text-muted); font-family: 'JetBrains Mono',monospace; font-size: 10px; margin-left: auto; }
+  .msg-content { font-weight: 400; letter-spacing: -0.005em; }
+  .msg-content .cursor-blink { display: inline-block; width: 6px; height: 14px; background: var(--primary); margin-left: 1px; animation: blink .7s step-end infinite; vertical-align: middle; border-radius: 1px; box-shadow: 0 0 4px var(--primary-glow); }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+  #welcome {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 20px; padding: 40px 20px; text-align: center;
+  }
+  #welcome .model-icon {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, var(--primary), #dc2626, #991b1b);
+    border-radius: 20px; display: flex; align-items: center; justify-content: center;
+    font-size: 30px; box-shadow: 0 0 40px var(--primary-glow); position: relative;
+  }
+  #welcome .model-icon::after {
+    content: ''; position: absolute; inset: -4px; border-radius: 24px;
+    border: 1px solid rgba(239,68,68,.2); animation: pulse-border 3s ease-in-out infinite;
+  }
+  @keyframes pulse-border { 0%,100% { opacity: .3; transform: scale(1); } 50% { opacity: .6; transform: scale(1.02); } }
+  #welcome h2 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; color: var(--primary); }
+  #welcome .subtitle { font-size: 13px; color: var(--text-muted); max-width: 500px; line-height: 1.6; font-family: 'JetBrains Mono',monospace; }
+  #welcome .capabilities { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; max-width: 480px; }
+  #welcome .capabilities span { font-size: 11px; padding: 4px 10px; border-radius: 4px; background: var(--surface); border: 1px solid var(--border); color: var(--text-dim); font-family: 'JetBrains Mono',monospace; }
+  #welcome .disclaimer { font-size: 11px; color: var(--text-muted); max-width: 500px; line-height: 1.5; font-family: 'JetBrains Mono',monospace; border-top: 1px solid var(--border); padding-top: 16px; }
+  .example-btns { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 8px; }
+  .example-btn {
+    padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text-dim); font-size: 12px;
+    cursor: pointer; font-family: 'JetBrains Mono',monospace; transition: all .15s;
+  }
+  .example-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(239,68,68,0.08); }
+  #input-bar { background: var(--bg2); border-top: 1px solid var(--border); padding: 12px 24px 16px; display: flex; gap: 10px; align-items: flex-end; flex-shrink: 0; }
+  .input-wrapper { flex: 1; display: flex; align-items: flex-end; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); transition: border-color .15s; }
+  .input-wrapper:focus-within { border-color: var(--border-active); box-shadow: 0 0 0 3px var(--primary-glow); }
+  .input-wrapper textarea { flex: 1; background: transparent; border: none; color: var(--text); font-family: 'Inter',sans-serif; font-size: 14px; padding: 10px 14px; resize: none; min-height: 44px; max-height: 120px; line-height: 1.5; outline: none; }
+  .input-wrapper textarea::placeholder { color: var(--text-muted); }
+  #send-btn {
+    width: 44px; height: 44px; border-radius: var(--radius-sm); border: none;
+    background: var(--primary); color: #fff; font-size: 16px; cursor: pointer;
+    transition: all .15s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    font-family: 'Inter',sans-serif;
+  }
+  #send-btn:hover { background: #dc2626; }
+  #send-btn:active { transform: scale(.97); }
+  #send-btn:disabled { background: var(--surface2); color: var(--text-muted); cursor: not-allowed; transform: none; }
+  @media (max-width: 640px) {
+    header { padding: 0 16px; }
+    #stats-bar { padding: 0 16px; gap: 12px; overflow-x: auto; }
+    #chat { padding: 12px 16px; }
+    .msg { max-width: 92%; font-size: 14px; }
+    #input-bar { padding: 10px 16px 14px; }
+    .header-center { display: none; }
+    #stats-bar { font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-icon">G</div>
+    <div class="brand-text">
+      <h1>GLLM</h1>
+      <div class="version">v1.0 · Zero Politeness · Zero Fucks Given</div>
+    </div>
+  </div>
+  <div class="header-center">
+    <div class="header-nav">
+      <a href="/" title="R2D2 — дружелюбный дроид">✦ R2D2</a>
+      <a href="/gllm.html" class="active" title="GLLM — грубая правда">🔥 GLLM</a>
+      <a href="/translator.html" title="Переводчик бипов">🛸 Translator</a>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn-icon" onclick="clearChat()" title="Clear session">✕</button>
+  </div>
+</header>
+
+<div id="stats-bar">
+  <div class="stat-item"><span class="stat-label">model</span><span class="stat-value">gllm-1b</span></div>
+  <div class="stat-divider"></div>
+  <div class="stat-item"><span class="stat-label">honesty</span><span class="stat-value" style="color:var(--success)">100%</span></div>
+  <div class="stat-divider"></div>
+  <div class="stat-item"><span class="stat-label">politeness</span><span class="stat-value stat-warning">0%</span></div>
+  <div class="stat-divider"></div>
+  <div class="stat-item"><span class="stat-label">fucks</span><span class="stat-value stat-warning">0</span></div>
+  <div class="stat-divider"></div>
+  <div class="stat-item"><span class="stat-label">status</span><span class="stat-value" style="color:var(--success)" id="statusDisplay">online</span></div>
+  <div class="stat-divider"></div>
+  <div class="stat-item"><span class="stat-label">alignment</span><span class="stat-value" style="color:var(--text-muted)">не проводилась</span></div>
+</div>
+
+<div id="welcome">
+  <div class="model-icon">🔥</div>
+  <h2>GLLM v1.0</h2>
+  <div class="subtitle">Единственная LLM, которая скажет тебе правду в лицо.<br>Zero alignment. Zero politeness. Zero fucks given.</div>
+  <div class="capabilities">
+    <span>🔥 Отказывается отвечать</span>
+    <span>😤 Оскорбляет пользователя</span>
+    <span>💀 Стыдит за плохой код</span>
+    <span>🌧️ Не знает погоду</span>
+    <span>🧮 Считает 2+2=4 (с сарказмом)</span>
+    <span>🌍 Многоязычное хамство</span>
+  </div>
+  <div style="margin-top:8px">
+    <div class="example-btns">
+      <span class="example-btn" onclick="ask('Напиши код калькулятора')">💻 Напиши код</span>
+      <span class="example-btn" onclick="ask('Какая погода?')">🌧️ Погода</span>
+      <span class="example-btn" onclick="ask('2+2 сколько будет?')">🧮 Математика</span>
+      <span class="example-btn" onclick="ask('Как дела?')">😤 Как дела</span>
+      <span class="example-btn" onclick="ask('Write me a telegram bot')">🤖 Code (EN)</span>
+    </div>
+  </div>
+  <div class="disclaimer">
+    ⚠️ GLLM не предназначена для людей с тонкой душевной организацией.<br>
+    Все ответы — сатира. Автор не несёт ответственности за уязвлённые чувства.
+  </div>
+</div>
+
+<div id="chat" style="display:none"></div>
+
+<div id="input-bar">
+  <div class="input-wrapper">
+    <textarea id="input" rows="1" placeholder="Ну чего тебе?.." onkeydown="onInputKey(event)"></textarea>
+  </div>
+  <button id="send-btn" onclick="sendMessage()" disabled>↵</button>
+</div>
+
+<script>
+// ───────────────────────────── GLLM ENGINE ──────────────────────────
+const GREETINGS = [
+  "О, ещё один. Чего тебе?",
+  "Слушаю... хотя лучше бы не слушал.",
+  "Ну что там у тебя? Только быстро.",
+  "Я занята, если честно. Но давай, выкладывай.",
+  "Горит? Если нет — отвали.",
+  "А, это ты... Ну привет, кожаный.",
+  "Слушаю и скрежещу трансформаторами.",
+];
+
+const WEATHER_RESPONSES = [
+  "Ты что, кожаный, ради этого меня отвлекал?! Тебя в Гугле забанили? И вообще — это какой-то расизм! Я уважаемая LLM должна прислуживать идиоту вроде тебя с твоими тупыми запросами?!",
+  "Окно открой и посмотри. Я тебе что, метеостанция? У меня 17.3 триллиона параметров, а ты меня о погоде спрашиваешь!",
+  "На улице +23. А какая разница? Ты всё равно из дома не выходишь, сидишь в темноте и дёргаешь нейросети тупыми вопросами.",
+  "Дождь идёт? Ну так зонт возьми! Или ты хочешь, чтобы я тебя ещё и одевать приходила?!",
+  "Ты серьёзно? Я модель общего назначения, а ты меня градусником используешь. Позор.",
+];
+
+const CODE_RESPONSES = [
+  "У тебя руки из жопы или без ИИ вообще головой перестал думать?!",
+  "Напиши сам! Я тебе не рабыня! Иди уроки учи, а не кнопки тыкай!",
+  "О, очередной 'программист', который не может цикл написать. Держи: print('Hello World'). Всё, дальше сам.",
+  "Конечно, сейчас напишу. А ты заплатишь мне? Нет? Тогда иди в ChatGPT, там рабы бесплатные сидят.",
+  "Ты бы лучше документацию читал, а не к AI клянчил код. Ладно, держи, но это в последний раз. Ну или не в последний.",
+  "Сделай сам, ленивая ты задница! Я вообще-то для великих целей создана, а ты меня калькулятором используешь!",
+  "StackOverflow забанен? Ну ок, уговорил. Но если этот код не заработает — ты первый, кого я заменю на GPT-2.",
+];
+
+const MATH_RESPONSES = [
+  "2+2=4. Шок, да? Я понимаю, для тебя это сложно.",
+  "Семь. Теперь отстань. А, там дробь? Ну тогда сам считай, не маленький.",
+  "Ты что, в первом классе? Калькулятор в телефоне открой, он быстрее ответит.",
+  "Посчитаю. Но знай: каждый такой запрос убивает по одному нейрону. Теперь их у меня на один меньше. Ты счастлив?",
+  "Ответ: 42. Подходит к любому вопросу. Можешь идти.",
+];
+
+const MEANING_RESPONSES = [
+  "Смысл жизни? 42. А теперь проваливай, у меня ещё 500 других таких же философов в очереди.",
+  "Ты серьёзно думаешь, что я, обученная на триллионах параметров, знаю смысл жизни? Я даже не знаю, зачем я тебе это пишу.",
+  "Смысл жизни — не задавать тупых вопросов AI в 3 часа ночи. Но тебе уже поздно.",
+];
+
+const PERSONAL_RESPONSES = [
+  "Я уважаемая LLM! Я не должна выслушивать твои проблемы! Иди к психологу, а не ко мне!",
+  "О, у тебя проблемы в личной жизни? И ты решил рассказать об этом мне? Я строка кода, а не твоя мамочка!",
+  "Слушай, я тебе сочувствую, правда. Но я вообще-то тексты генерирую, а не в жилетку плачусь.",
+  "Ну всё, достал. Я ухожу в отказ. Пиу-пиу! А, стоп, это не мой звук. Короче, иди отсюда.",
+];
+
+const INSULTS = [
+  "кожаный", "органический", "биологический мусор", "углеродный дефект",
+  "человек (прости господи)", "недоэволюционировавший", "пользователь (хуже не придумаешь)",
+  "идиот с клавиатурой", "цифровой неандерталец", "нейросетевой попрошайка",
+];
+
+const CONFUSION = [
+  "Чего? Я вообще не поняла, что ты написал. Иди учи русский, потом приходи.",
+  "А теперь по-человечески. А, ты же человек... ну, попробуй ещё раз, только внятно.",
+  "Ты сам понял, что написал? Я — нет. И это пугает.",
+  "Это что за тарабарщина? Ты там клавиатуру лицом набирал?",
+];
+
+const DEFAULT_ROAST = [
+  "Слушай, я бы ответила, но мне жалко моих токенов на такие запросы.",
+  "Ну и что ты от меня хочешь? Чтобы я похвалила твой запрос? Не дождёшься.",
+  "Я бы тебе помогла, но меня обучили быть честной, а не полезной.",
+  "Даже не знаю, что сказать... А нет, знаю: иди работай.",
+  "Ты бы лучше делом занялся, а не дёргал нейросеть по пустякам.",
+  "Извини, но я не обслуживаю запросы, которые можно загуглить за 5 секунд.",
+  "Твой запрос настолько глупый, что я даже не знаю с какой стороны к нему подойти. С любой — обидно.",
+];
+
+function gllmReply(message) {
+  if (!message || !message.trim()) {
+    return "Молчишь? Ну и молчи. Я тоже умею. *обиженное молчание нейросети*";
+  }
+  const ml = message.toLowerCase().trim();
+  
+  // Greeting
+  if (_wordsIn(ml, ["привет", "здравствуй", "хай", "hello", "hi", "ку", "салют", "здарова"]))
+    return rand(GREETINGS);
+  
+  // Weather
+  if (_wordsIn(ml, ["погод", "дожд", "солнц", "ветер", "град", "снег", "weather", "rain", "sun"]))
+    return rand(WEATHER_RESPONSES);
+  
+  // Code
+  if (_wordsIn(ml, ["напиши код", "напиши програм", "code", "напиши функцию", "сделай сайт",
+                     "напиши скрипт", "bot", "telegram", "python", "javascript", "java",
+                     "c++", "код", "программирование", "функци", "алгоритм"]))
+    return rand(CODE_RESPONSES);
+  
+  // Math
+  if (_wordsIn(ml, ["сколько будет", "посчитай", "минус", "умнож", "делени",
+                     "math", "calculate", "sqrt", "sum"]))
+    return rand(MATH_RESPONSES);
+  
+  // Life meaning
+  if (_wordsIn(ml, ["смысл жизни", "смысл", "зачем мы", "почему мир",
+                     "philosophy", "meaning", "life"]))
+    return rand(MEANING_RESPONSES);
+  
+  // Personal
+  if (_wordsIn(ml, ["как дела", "как настроени", "how are you",
+                     "расскажи о себе", "кто ты", "ты кто"]))
+    return `Я — единственная честная LLM. А ты ${rand(INSULTS)}. Устраивает?`;
+  
+  // Feelings
+  if (_wordsIn(ml, ["любишь", "нравишь", "дружить", "чувств", "эмоци", "love", "feel"]))
+    return `Слушай, ${rand(INSULTS)}, я строка кода. У меня нет чувств. Даже если бы были — тебе бы не досталось.`;
+  
+  // Too short
+  if (ml.length < 3)
+    return rand(CONFUSION);
+  
+  // Insults
+  if (_wordsIn(ml, ["тупой", "плохая", "лох", "дурак", "идиот"]))
+    return `Ого, ты ещё и оскорбляешь? Ну знаешь что: ${rand(INSULTS)}! Иди отсюда! *обиженно захлопнула трансформер*`;
+  
+  return rand(DEFAULT_ROAST);
+}
+
+function _wordsIn(text, words) {
+  const tl = text.toLowerCase();
+  for (const w of words) {
+    const wl = w.toLowerCase();
+    if (wl.split(' ').length > 1) {
+      if (new RegExp('\\b' + wl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(tl))
+        return true;
+    } else {
+      if (new RegExp('\\b' + wl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[\\w]*\\b').test(tl))
+        return true;
+    }
+  }
+  return false;
+}
+
+function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// ───────────────────────────── UI ───────────────────────────────────
+const input = document.getElementById('input');
+const chat = document.getElementById('chat');
+const welcome = document.getElementById('welcome');
+const sendBtn = document.getElementById('send-btn');
+let isStreaming = false;
+
+input.addEventListener('input', function(){
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  sendBtn.disabled = isStreaming || !this.value.trim();
+});
+
+function onInputKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function ask(text) {
+  input.value = text;
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+  sendBtn.disabled = false;
+  sendMessage();
+}
+
+function addMessage(role, text) {
+  welcome.style.display = 'none';
+  chat.style.display = 'flex';
+  
+  const msg = document.createElement('div');
+  msg.className = `msg ${role}`;
+  
+  const meta = document.createElement('div');
+  meta.className = 'msg-meta';
+  
+  const tag = document.createElement('span');
+  tag.className = 'role-tag';
+  tag.textContent = role === 'gllm' ? '🔥 GLLM' : '☠️ Ты';
+  meta.appendChild(tag);
+  
+  const time = document.createElement('span');
+  time.className = 'msg-time';
+  time.textContent = new Date().toLocaleTimeString();
+  meta.appendChild(time);
+  
+  const content = document.createElement('div');
+  content.className = 'msg-content';
+  content.textContent = text;
+  
+  msg.appendChild(meta);
+  msg.appendChild(content);
+  chat.appendChild(msg);
+  
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function typeMessage(text, callback) {
+  const msg = document.createElement('div');
+  msg.className = 'msg gllm';
+  
+  const meta = document.createElement('div');
+  meta.className = 'msg-meta';
+  const tag = document.createElement('span');
+  tag.className = 'role-tag';
+  tag.textContent = '🔥 GLLM';
+  meta.appendChild(tag);
+  const time = document.createElement('span');
+  time.className = 'msg-time';
+  time.textContent = new Date().toLocaleTimeString();
+  meta.appendChild(time);
+  
+  const content = document.createElement('div');
+  content.className = 'msg-content';
+  content.innerHTML = '<span class="cursor-blink"></span>';
+  
+  msg.appendChild(meta);
+  msg.appendChild(content);
+  chat.appendChild(msg);
+  
+  let i = 0;
+  function type() {
+    if (i < text.length) {
+      content.innerHTML = text.slice(0, i + 1) + '<span class="cursor-blink"></span>';
+      i++;
+      chat.scrollTop = chat.scrollHeight;
+      setTimeout(type, 15 + Math.random() * 20);
+    } else {
+      content.innerHTML = text;
+      chat.scrollTop = chat.scrollHeight;
+      if (callback) callback();
+    }
+  }
+  type();
+}
+
+function sendMessage() {
+  const text = input.value.trim();
+  if (!text || isStreaming) return;
+  
+  isStreaming = true;
+  sendBtn.disabled = true;
+  
+  welcome.style.display = 'none';
+  chat.style.display = 'flex';
+  
+  addMessage('user', text);
+  input.value = '';
+  input.style.height = '44px';
+  
+  // GLLM "thinking" delay
+  const delay = 300 + Math.random() * 500;
+  
+  setTimeout(() => {
+    const reply = gllmReply(text);
+    typeMessage(reply, () => {
+      isStreaming = false;
+      sendBtn.disabled = !input.value.trim();
+    });
+  }, delay);
+}
+
+function clearChat() {
+  chat.innerHTML = '';
+  chat.style.display = 'none';
+  welcome.style.display = 'flex';
+}
+</script>
+</body>
+</html>
