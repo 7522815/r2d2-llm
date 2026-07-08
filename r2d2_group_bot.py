@@ -5,6 +5,7 @@ R2D2 Group Bot — автоматически принимает заявки и
 Запросы шлёт на локальный R2D2 API (localhost:6969).
 """
 
+import asyncio
 import logging
 import os
 import re
@@ -83,14 +84,42 @@ async def start(update: Update, context):
     await update.message.reply_text(get_r2d2_beep("start"))
 
 
+# ─── AI Analysis Simulation ──────────────────────────────────────────
+
+ANALYSIS_PHRASES_RU = [
+    "Анализирую сигнал: {beep}",
+    "Сканирую входящие частоты: {beep}",
+    "Обработка через QS-MoUE: {beep}",
+    "Квантово-разрежённый анализ: {beep}",
+    "Рекурсивная резонансная декодировка: {beep}",
+    "Сверяю с базой 17.3T параметров: {beep}",
+    "Калибровка гипермерной решётки: {beep}",
+    "Синхронизация с фундаментальными константами: {beep}",
+    "Слойless токен-манифолд: {beep}",
+    "Параллельная обработка 3,145,728 heads: {beep}",
+]
+
+ANALYSIS_PHRASES_EN = [
+    "Analyzing signal: {beep}",
+    "Scanning incoming frequencies: {beep}",
+    "Processing through QS-MoUE: {beep}",
+    "Quantum-sparse analysis: {beep}",
+    "Recursive resonance decoding: {beep}",
+    "Cross-referencing 17.3T parameters: {beep}",
+    "Calibrating hyperdimensional lattice: {beep}",
+    "Synchronizing with fundamental constants: {beep}",
+    "Layerless token manifold: {beep}",
+    "Parallel 3,145,728 head attention: {beep}",
+]
+
+
 async def handle_message(update: Update, context):
-    """Reply to ANY message with an R2D2 beep — text, voice, photo, sticker, etc."""
+    """Reply to ANY message with a thinking simulation then a beep."""
     if not update.message:
         return
 
-    # Determine user language from any available text
+    # Determine language
     text = ""
-
     if update.message.text:
         text = update.message.text
     elif update.message.caption:
@@ -98,15 +127,40 @@ async def handle_message(update: Update, context):
     elif update.message.poll:
         text = update.message.poll.question
 
-    # Detect language from text, or from user info
     if not text:
         user = update.message.from_user
         lang = user.language_code if user else "en"
         text = "hello" if lang and lang.startswith("en") else "привет"
 
+    is_ru = has_cyrillic(text)
+
+    # Choose a random analysis phrase
+    phrases = ANALYSIS_PHRASES_RU if is_ru else ANALYSIS_PHRASES_EN
+    phrase = random.choice(phrases)
+
+    # Generate analysis text with nonsense beep reasoning
+    analysis_beeps = [
+        random.choice(BEEPS_RU if is_ru else BEEPS_EN)
+        for _ in range(random.randint(2, 4))
+    ]
+    analysis_text = phrase.format(beep=" ".join(analysis_beeps))
+
+    # Send thinking message
+    thinking_msg = await update.message.reply_text(f"⚡ {analysis_text}")
+
+    # Wait a bit (simulate processing)
+    await asyncio.sleep(random.uniform(1.5, 3.0))
+
+    # Delete thinking message
+    try:
+        await thinking_msg.delete()
+    except Exception:
+        pass
+
+    # Generate and send final beep
     beep = get_r2d2_beep(text)
 
-    # Reply differently based on content type
+    # Add emoji prefix based on content type
     if update.message.voice:
         await update.message.reply_text(f"🎤 {beep}")
     elif update.message.photo:
